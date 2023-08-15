@@ -5,8 +5,9 @@ module.exports = {
   plugins: [
     'node',
   ],
+  parser: '@typescript-eslint/parser',
   extends: [
-    'plugin:node/recommended',
+    'plugin:@typescript-eslint/recommended',  // TypeScript 권장 설정 사용
   ],
   rules: {
     'no-var': 'error',
@@ -18,6 +19,6 @@ module.exports = {
     'no-console': 'off',
   },
   parserOptions: {
-    ecmaVersion: 6,
+    ecmaVersion: 'latest',
   },
 };
