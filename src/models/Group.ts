@@ -10,7 +10,7 @@ import {
 const groupSchema = new Schema<IGroup>({
   title: { type: String, required: true },
   description: { type: String, required: true },
-  author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  author: { type: Schema.Types.ObjectId, ref: 'User', required: false },
   currentMembers: {
     type: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     required: true,
