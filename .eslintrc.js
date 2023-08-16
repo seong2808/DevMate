@@ -15,7 +15,6 @@ module.exports = {
     semi: ['error', 'always'],
     indent: ['error', 2],
     'comma-dangle': ['error', 'always-multiline'],
-    'max-len': ['error', { code: 80 }],
     'no-console': 'off',
   },
   parserOptions: {
