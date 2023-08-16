@@ -1,8 +1,8 @@
 import express, { Request, Response, NextFunction } from 'express';
-import User from '../models/User';
+import User, { IUser } from '../models/User';
 
-//사용자 정보 조회
-export const getUsers = async (
+//전체 사용자 정보 조회 (추후 삭제 예정)
+export const getAllUsers = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -11,15 +11,49 @@ export const getUsers = async (
   res.json({ users: users });
 };
 
+//사용자 정보 조회
+export const getUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { id }: IUser = req.body;
+  try {
+    const users = await User.findById(id);
+    res.json({ users: users });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 //사용자 회원가입
 export const signup = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
-  const { email, nickName, password } = req.body;
+  const { email, nickName, password }: IUser = req.body;
+
+  // 이미 존재하는 닉네임/이메일 체크
+  // 이메일 형식 validation 필요
+  let existingUser: IUser | null;
+  try {
+    existingUser = await User.findOne({ email: email });
+  } catch (err) {
+    return next(err);
+  }
+
+  if (existingUser) {
+    throw new Error('이미 존재하는 이메일입니다.');
+  }
+
   const createdUser = new User({ email, nickName, password });
-  const users = await createdUser.save();
+  try {
+    await createdUser.save();
+  } catch (err) {
+    return next(err);
+  }
+
   res.json({ message: 'Sign up' });
 };
 
@@ -29,8 +63,16 @@ export const updateUsers = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const users = await User.find();
-  res.json({ users: users });
+  const userId: string = req.body.id;
+  const updates: IUser = req.body;
+  try {
+    const updatedUser = await User.findByIdAndUpdate(userId, updates, {
+      new: true,
+    });
+    res.json({ message: 'update success!' });
+  } catch (err) {
+    return next(err);
+  }
 };
 
 //사용자 정보 삭제(탈퇴)
@@ -39,10 +81,11 @@ export const deleteUsers = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const userId = req.body.id;
-  console.log(userId);
-
-  const users = await User.findByIdAndDelete(userId);
-
-  res.json({ message: 'Delete' });
+  try {
+    const userId: string = req.body.id;
+    const users = await User.findByIdAndDelete(userId);
+    res.json({ message: 'Delete user.' });
+  } catch (err) {
+    return next(err);
+  }
 };
