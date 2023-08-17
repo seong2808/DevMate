@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import User, { IUser } from '../models/User';
+import generateJWT from '../utils/generate-jwt';
 
 //전체 사용자 정보 조회 (추후 삭제 예정)
 export const getAllUsers = async (
@@ -9,6 +10,26 @@ export const getAllUsers = async (
 ) => {
   const users = await User.find();
   res.json({ users: users });
+};
+
+interface temp {
+  _id: string;
+  email: string;
+}
+
+// 사용자 로그인 (임시 api)
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { _id, email }: { _id: string; email: string } = req.body;
+    const user = { _id: _id, email: email };
+    generateJWT(res, user);
+  } catch (err) {
+    return next(err);
+  }
 };
 
 //사용자 정보 조회
