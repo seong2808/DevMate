@@ -28,6 +28,7 @@ const groupSchema = new Schema<IGroup>({
   },
   imageUrl: { type: String, default: '' },
   dueDate: { type: String },
+  completedDate : { type: Date },
   skills: { type: [String] },
   maxMembers: { type: Number },
   viewCount: { type: Number, default: 0 },

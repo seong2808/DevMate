@@ -7,6 +7,7 @@ export interface IGroup {
   description: string;
   location: Locations;
   currentMembers: (typeof Schema.Types.ObjectId)[];
+  completedDate?: Date;
   position?: GroupPositions[];
   imageUrl?: string;
   dueDate?: string;
@@ -55,4 +56,3 @@ export enum Locations {
   부산 = '부산',
   제주 = '제주'
 }
-
