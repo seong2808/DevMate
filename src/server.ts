@@ -1,6 +1,9 @@
+import 'reflect-metadata';
 import express from 'express';
 import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
+import groupRoutes from './routes/groupsRoutes';
+import bodyParser from 'body-parser';
 
 import usersRoutes from './routes/users-routes';
 import passport from 'passport';
@@ -9,6 +12,9 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(bodyParser.json());
+
+app.use('/api/groups', groupRoutes);
 app.use(passport.initialize());
 
 app.use('/api/users', usersRoutes);
