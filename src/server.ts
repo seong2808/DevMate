@@ -3,11 +3,13 @@ import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
 
 import usersRoutes from './routes/users-routes';
+import passport from 'passport';
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(passport.initialize());
 
 app.use('/api/users', usersRoutes);
 

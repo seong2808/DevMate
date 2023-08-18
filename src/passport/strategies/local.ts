@@ -1,13 +1,14 @@
-import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcrypt';
-import User from '../../models/User'; // 사용자 모델 경로로 수정
+import User from '../../models/User';
+
+const passportConfig = {
+  usernameField: 'email',
+  passwordField: 'password',
+};
 
 const local = new LocalStrategy(
-  {
-    usernameField: 'email',
-    passwordField: 'password',
-  },
+  passportConfig,
   async (email, password, done) => {
     try {
       const user = await User.findOne({ email });

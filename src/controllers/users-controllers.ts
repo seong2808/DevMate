@@ -12,11 +12,6 @@ export const getAllUsers = async (
   res.json({ users: users });
 };
 
-interface temp {
-  _id: string;
-  email: string;
-}
-
 // 사용자 로그인 (임시 api)
 export const login = async (
   req: Request,
@@ -24,9 +19,10 @@ export const login = async (
   next: NextFunction,
 ) => {
   try {
-    const { _id, email }: { _id: string; email: string } = req.body;
-    const user = { _id: _id, email: email };
-    generateJWT(res, user);
+    const email: string = req.body.email;
+    // const user = { _id: _id, email: email };
+    generateJWT(res, email);
+    res.json({ message: 'logged in!' });
   } catch (err) {
     return next(err);
   }

@@ -1,8 +1,8 @@
 import passport from 'passport';
-import local from './strategy/local';
-import jwt from './strategy/jwt';
+import local from './strategies/local';
+import jwt from './strategies/jwt';
 
 export default () => {
-  passport.use(local);
-  passport.use(jwt);
+  passport.use('local', local);
+  passport.use('jwt', jwt);
 };
