@@ -1,14 +1,17 @@
+import 'reflect-metadata';
 import express from 'express';
 import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
-import groupRoutes from './routes/groups-routes';
+import groupRoutes from './routes/groupsRoutes';
+import bodyParser from 'body-parser';
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(bodyParser.json());
 
-app.use(groupRoutes);
+app.use('/api/groups', groupRoutes);
 
 const initServer = async () => {
   try {

@@ -2,10 +2,13 @@ import { Response, Request } from 'express';
 import { AuthRequest } from '../types/auth-request';
 import User from '../models/User';
 import Group from '../models/Group';
-import { IGroup } from '../types/groups-types';
+import { CreateGroupDto } from '../dto/groups.dto';
+import { validate } from 'class-validator';
+import { plainToClass } from 'class-transformer';
 
 const TEMP_USER_ID = '64dc65801ded8e6a83b9d760';
 
+// 전체 그룹 조회
 export const getAllGroups = async (req: Request, res: Response) => {
   const tempUser = await User.find();
   try {
@@ -20,6 +23,7 @@ export const getAllGroups = async (req: Request, res: Response) => {
   }
 };
 
+// 그룹 상세 조회(조회수 추가)
 export const getGroup = async (req: Request, res: Response) => {
   try {
     const { groupId } = req.params;
@@ -37,15 +41,20 @@ export const getGroup = async (req: Request, res: Response) => {
   }
 };
 
+// 그룹 생성
 export const postGroup = async (req: Request, res: Response) => {
   try {
+    const createGruopDto = req.body;
+    console.log('title : ', req.body);
+
     const groupData = {
-      ...req.body,
+      ...createGruopDto,
       position: JSON.parse(req.body.position),
       author: TEMP_USER_ID,
       currentMembers: [TEMP_USER_ID],
       imageUrl: req.file ? req.file.path : '',
     };
+
     const newGroup = new Group(groupData);
     await newGroup.save();
     res.json({ data: null, error: null });
@@ -54,6 +63,7 @@ export const postGroup = async (req: Request, res: Response) => {
   }
 };
 
+//그룹 수정
 export const patchGroup = async (req: Request, res: Response) => {
   try {
     const { groupId } = req.params;
@@ -80,6 +90,7 @@ export const patchGroup = async (req: Request, res: Response) => {
   }
 };
 
+// 그룹 삭제
 export const deleteGroup = async (req: Request, res: Response) => {
   try {
     const { groupId } = req.params;
@@ -94,6 +105,3 @@ export const deleteGroup = async (req: Request, res: Response) => {
     res.status(500).send({ data: null, error: `요청 실패 ${err}` });
   }
 };
-
-
-

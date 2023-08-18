@@ -10,6 +10,7 @@ import {
 const groupSchema = new Schema<IGroup>({
   title: { type: String, required: true },
   description: { type: String, required: true },
+  // 그룹 생성하는 사람
   author: { type: Schema.Types.ObjectId, ref: 'User', required: false },
   currentMembers: {
     type: [{ type: Schema.Types.ObjectId, ref: 'User' }],
@@ -28,7 +29,7 @@ const groupSchema = new Schema<IGroup>({
   },
   imageUrl: { type: String, default: '' },
   dueDate: { type: String },
-  completedDate : { type: Date },
+  completedDate: { type: Date },
   skills: { type: [String] },
   maxMembers: { type: Number },
   viewCount: { type: Number, default: 0 },
