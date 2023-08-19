@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import User, { IUser } from '../models/User';
 import generateJWT from '../utils/generate-jwt';
+import hashPassword from '../utils/hash-password';
 
 //전체 사용자 정보 조회 (추후 삭제 예정)
 export const getAllUsers = async (
@@ -34,9 +35,9 @@ export const getUsers = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const { id }: IUser = req.body;
+  const userId: IUser = req.body.userId;
   try {
-    const users = await User.findById(id);
+    const users = await User.findById(userId);
     res.json({ users: users });
   } catch (err) {
     return next(err);
@@ -64,7 +65,8 @@ export const signup = async (
     throw new Error('이미 존재하는 이메일입니다.');
   }
 
-  const createdUser = new User({ email, nickName, password });
+  const hashedPassword = await hashPassword(password);
+  const createdUser = new User({ email, nickName, password: hashedPassword });
   try {
     await createdUser.save();
   } catch (err) {
