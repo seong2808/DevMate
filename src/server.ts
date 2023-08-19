@@ -8,6 +8,7 @@ import bodyParser from 'body-parser';
 import usersRoutes from './routes/users-routes';
 import passport from 'passport';
 import passportIndex from './passport';
+import getToken from './middlewares/get-token.handler';
 
 passportIndex();
 
@@ -18,6 +19,7 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 
 app.use(passport.initialize());
+app.use(getToken);
 
 app.use('/api/groups', groupRoutes);
 

@@ -23,7 +23,6 @@ export const login = async (
     const email: string = req.body.email;
     // const user = { _id: _id, email: email };
     generateJWT(res, email);
-    res.json({ message: 'logged in!' });
   } catch (err) {
     return next(err);
   }
