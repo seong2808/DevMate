@@ -5,6 +5,10 @@ import {
   postGroup,
   patchGroup,
   deleteGroup,
+  joinReqGroup,
+  getGroupJoinList,
+  approveGroupJoinRequest,
+  rejectGroupJoinRequest,
 } from '../controllers/groupsControllers';
 import { handleGroupVisit } from '../middlewares/group.handler';
 import upload from '../middlewares/uploadFile.handler';
@@ -21,5 +25,13 @@ router.post('/', upload.single('imageFile'), handleDtoValidate, postGroup);
 router.patch('/:groupId', upload.single('imageFile'), patchGroup);
 
 router.delete('/:groupId', deleteGroup);
+
+router.post('/joinRequests/:groupId', joinReqGroup);
+
+router.get('/joinRequests/:groupId', getGroupJoinList);
+
+router.patch('/approveJoinRequest/:joinId', approveGroupJoinRequest);
+
+router.patch('/rejectJoinRequest/:joinId', rejectGroupJoinRequest);
 
 export default router;

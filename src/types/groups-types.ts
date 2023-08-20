@@ -16,6 +16,7 @@ export interface IGroup {
   viewCount?: number;
   wishCount?: number;
   status?: GroupStatus;
+  joinReqList: (typeof Schema.Types.ObjectId)[];
 }
 
 export enum GroupTypes {

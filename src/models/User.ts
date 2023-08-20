@@ -12,6 +12,8 @@ export interface IUser extends Document {
     blog?: string;
   };
   wishList: (typeof Schema.Types.ObjectId)[];
+  groups: (typeof Schema.Types.ObjectId)[];
+  notifications: (typeof Schema.Types.ObjectId)[];
 }
 
 const userSchema = new Schema<IUser>({
@@ -26,6 +28,8 @@ const userSchema = new Schema<IUser>({
     blog: { type: String },
   },
   wishList: { type: [{ type: Schema.Types.ObjectId, ref: 'Group' }] },
+  groups: { type: [{ type: Schema.Types.ObjectId, ref: 'Group' }] },
+  notifications: { type: [{ type: Schema.Types.ObjectId, ref: 'Group' }] },
 });
 
 export default mongoose.model<IUser>('User', userSchema);
