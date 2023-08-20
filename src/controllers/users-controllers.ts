@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import User, { IUser } from '../models/User';
-import generateJWT from '../utils/generate-jwt';
+import generateJWT, { reqUser } from '../utils/generate-jwt';
 import hashPassword from '../utils/hash-password';
 
 //전체 사용자 정보 조회 (추후 삭제 예정)
@@ -21,12 +21,22 @@ export const login = async (
 ) => {
   try {
     const email: string = req.body.email;
-    // const user = { _id: _id, email: email };
-    generateJWT(res, email);
+    const foundUser = await User.findOne({ email });
+    if (!foundUser) {
+      return;
+    }
+    const userId: string = foundUser._id;
+    const user = { userId: userId, email: email };
+    generateJWT(res, user);
   } catch (err) {
     return next(err);
   }
 };
+
+// 추후 따로 interface 분리 필요
+interface UserInfo {
+  user: { userId: string; email: string };
+}
 
 //사용자 정보 조회
 export const getUsers = async (
@@ -34,10 +44,18 @@ export const getUsers = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const userId: IUser = req.body.userId;
+  if (!req.user) {
+    console.log('no req user'); //임시 확인용. 추후 수정 예정
+    return;
+  }
+  const userInfo = req.user as UserInfo;
+  // 왜 이런 형태(userInfo.user.userId)로 나오는지 req.user에 들어가는 정보 확인 필요
+  const userId: string = userInfo.user.userId;
+  console.log(userInfo); // 추후 삭제 예정
+
   try {
-    const users = await User.findById(userId);
-    res.json({ users: users });
+    const foundUser = await User.findById(userId);
+    res.json({ users: foundUser });
   } catch (err) {
     return next(err);
   }

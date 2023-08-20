@@ -22,8 +22,6 @@ const local = new LocalStrategy(
         return done(null, false, { message: '비밀번호 에러' });
       }
 
-      console.log(user, password, user.password, isPasswordValid);
-
       return done(null, user);
     } catch (error) {
       return done(error);
