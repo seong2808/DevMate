@@ -2,10 +2,10 @@ import { Schema } from 'mongoose';
 
 export interface IUser {
   email: string;
-  nickName: string;
+  nickname: string;
   password: string;
   profileImage?: string;
-  overView?: string;
+  overview?: string;
   skills: string[];
   links: {
     gitHub?: string;

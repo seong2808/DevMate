@@ -1,8 +1,9 @@
-import express, { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import User from '../models/User';
 import { IUser, reqUserInfo } from '../types/users-types';
-import generateJWT, { reqUser } from '../utils/generate-jwt';
+import generateJWT from '../utils/generate-jwt';
 import hashPassword from '../utils/hash-password';
+import { HttpError } from '../middlewares/error.handler';
 
 //전체 사용자 정보 조회 (추후 삭제 예정)
 export const getAllUsers = async (
@@ -61,7 +62,7 @@ export const signup = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const { email, nickName, password }: IUser = req.body;
+  const { email, nickname, password }: IUser = req.body;
 
   // 이미 존재하는 닉네임/이메일 체크
   // 이메일 형식 validation 필요
@@ -77,7 +78,7 @@ export const signup = async (
   }
 
   const hashedPassword = await hashPassword(password);
-  const createdUser = new User({ email, nickName, password: hashedPassword });
+  const createdUser = new User({ email, nickname, password: hashedPassword });
   try {
     await createdUser.save();
   } catch (err) {
