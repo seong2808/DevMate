@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
-import User, { IUser } from '../models/User';
+import User from '../models/User';
+import { IUser, reqUserInfo } from '../types/users-types';
 import generateJWT, { reqUser } from '../utils/generate-jwt';
 import hashPassword from '../utils/hash-password';
 
@@ -13,7 +14,7 @@ export const getAllUsers = async (
   res.json({ users: users });
 };
 
-// 사용자 로그인 (임시 api)
+// 사용자 로그인 API
 export const login = async (
   req: Request,
   res: Response,
@@ -25,7 +26,7 @@ export const login = async (
     if (!foundUser) {
       return;
     }
-    const userId: string = foundUser._id;
+    const userId = foundUser._id;
     const user = { userId: userId, email: email };
     generateJWT(res, user);
   } catch (err) {
@@ -33,25 +34,18 @@ export const login = async (
   }
 };
 
-// 추후 따로 interface 분리 필요
-interface UserInfo {
-  user: { userId: string; email: string };
-}
-
-//사용자 정보 조회
+//사용자 정보 조회 API
 export const getUsers = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   if (!req.user) {
-    console.log('no req user'); //임시 확인용. 추후 수정 예정
-    return;
+    return; //에러 처리 필요
   }
-  const userInfo = req.user as UserInfo;
-  // 왜 이런 형태(userInfo.user.userId)로 나오는지 req.user에 들어가는 정보 확인 필요
-  const userId: string = userInfo.user.userId;
-  console.log(userInfo); // 추후 삭제 예정
+  const userTokenInfo = req.user as reqUserInfo;
+  const userId: string = userTokenInfo.userId;
+  console.log(req.user); // 추후 삭제 예정
 
   try {
     const foundUser = await User.findById(userId);
@@ -61,7 +55,7 @@ export const getUsers = async (
   }
 };
 
-//사용자 회원가입
+//사용자 회원가입 API
 export const signup = async (
   req: Request,
   res: Response,
@@ -93,14 +87,24 @@ export const signup = async (
   res.json({ message: 'Sign up' });
 };
 
-//사용자 정보 수정
+//사용자 정보 수정 API
 export const updateUsers = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
-  const userId: string = req.body.id;
+  if (!req.user) {
+    return; //에러 처리 필요
+  }
+  const userTokenInfo = req.user as reqUserInfo;
+  const userId: string = userTokenInfo.userId;
+
   const updates: IUser = req.body;
+
+  // 비밀번호 변경시 hash 적용
+  if (updates.password) {
+    updates.password = await hashPassword(updates.password);
+  }
   try {
     const updatedUser = await User.findByIdAndUpdate(userId, updates, {
       new: true,
@@ -111,16 +115,22 @@ export const updateUsers = async (
   }
 };
 
-//사용자 정보 삭제(탈퇴)
+//사용자 정보 삭제(탈퇴) API
 export const deleteUsers = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
+  if (!req.user) {
+    return; //에러 처리 필요
+  }
+  const userTokenInfo = req.user as reqUserInfo;
+  const userId: string = userTokenInfo.userId;
+  console.log(req.user); // 추후 삭제 예정
+
   try {
-    const userId: string = req.body.id;
-    const users = await User.findByIdAndDelete(userId);
-    res.json({ message: 'Delete user.' });
+    const userToDelete = await User.findByIdAndDelete(userId);
+    res.json({ message: 'Delete success' });
   } catch (err) {
     return next(err);
   }
