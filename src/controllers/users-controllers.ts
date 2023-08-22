@@ -35,8 +35,8 @@ export const login = async (
   }
 };
 
-//사용자 정보 조회 API
-export const getUsers = async (
+//내 정보 조회 API
+export const getMyprofile = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -46,7 +46,22 @@ export const getUsers = async (
   }
   const userTokenInfo = req.user as reqUserInfo;
   const userId: string = userTokenInfo.userId;
-  console.log(req.user); // 추후 삭제 예정
+
+  try {
+    const foundUser = await User.findById(userId);
+    res.json({ users: foundUser });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+//다른 유저 정보 조회 API
+export const getUserInfo = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const userId: string = req.params.userId;
 
   try {
     const foundUser = await User.findById(userId);

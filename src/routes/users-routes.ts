@@ -1,7 +1,8 @@
 import express from 'express';
 import {
   getAllUsers,
-  getUsers,
+  getUserInfo,
+  getMyprofile,
   signup,
   updateUsers,
   deleteUsers,
@@ -16,7 +17,9 @@ const router = express.Router();
 
 router.get('/', getAllUsers);
 
-router.get('/profile', isLoggedIn, getUsers);
+router.get('/myProfile', isLoggedIn, getMyprofile);
+
+router.get('/profile/:userId', getUserInfo);
 
 router.post('/signup', signup);
 
