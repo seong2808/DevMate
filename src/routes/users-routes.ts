@@ -10,6 +10,7 @@ import {
 import isLoggedIn from '../middlewares/login-required.handler';
 import validatePassword from '../middlewares/validate-password.handler';
 import passport from 'passport';
+import upload from '../middlewares/uploadFile.handler';
 
 const router = express.Router();
 
@@ -19,7 +20,7 @@ router.get('/profile', isLoggedIn, getUsers);
 
 router.post('/signup', signup);
 
-router.patch('/profile', isLoggedIn, updateUsers);
+router.patch('/profile', isLoggedIn, upload.single('imageFile'), updateUsers);
 
 router.delete('/', isLoggedIn, validatePassword, deleteUsers);
 

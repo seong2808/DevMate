@@ -102,10 +102,14 @@ export const updateUsers = async (
 
   const updates: IUser = req.body;
 
-  // 비밀번호 변경시 hash 적용
+  // 비밀번호 변경시 에러처리
   if (updates.password) {
-    updates.password = await hashPassword(updates.password);
+    // updates.password = await hashPassword(updates.password);
+    throw Error('error');
   }
+  // 이미지 파일 처리
+  updates.profileImage = req.file ? req.file.path : '';
+
   try {
     const updatedUser = await User.findByIdAndUpdate(userId, updates, {
       new: true,
