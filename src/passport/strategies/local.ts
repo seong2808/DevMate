@@ -16,7 +16,6 @@ const local = new LocalStrategy(
       if (!user) {
         return done(null, false, { message: '회원을 찾을 수 없습니다.' });
       }
-
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
       if (!isPasswordValid) {
