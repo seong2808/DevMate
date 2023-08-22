@@ -14,6 +14,7 @@ export const handleDtoValidate = async (
   await validate(createGruopDto).then((errors) => {
     if (errors.length > 0) {
       console.error(errors);
+      res.status(500).send({ data: null, error: `요청 실패 ${errors}` });
     } else {
       console.log('Validation passed');
     }

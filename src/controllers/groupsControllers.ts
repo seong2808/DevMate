@@ -3,25 +3,60 @@ import { AuthRequest } from '../types/auth-request';
 import User from '../models/User';
 import Group from '../models/Group';
 import Join from '../models/Join';
-import { CreateGroupDto } from '../dto/groups.dto';
-import { validate } from 'class-validator';
-import { plainToClass } from 'class-transformer';
+import { SortCriteria } from '../types/groups-types';
+import Notification from '../models/Notification';
 
 const TEMP_USER_ID = '64dc65801ded8e6a83b9d760';
 
 // 전체 그룹 조회
 export const getAllGroups = async (req: Request, res: Response) => {
-  const tempUser = await User.find();
   try {
+    const type = req.query.type;
+    const location = req.query.location;
+    const sortByTime = req.query.sortByTime === 'false' ? false : true || true;
+
     const page = Number(req.query.page);
     const perPage = Number(req.query.perPage) || 8;
-    const total = await Group.countDocuments({});
-    const totalPage = Math.ceil(total / perPage);
 
-    const groups = await Group.find()
-      .sort({ createdAt: -1 })
+    const position = req.query.position as string;
+    const newPosition = position?.split(',');
+
+    const skill = req.query.skills as string;
+    const newSkill = skill?.split(',');
+
+    const sortCriteria: SortCriteria = {};
+    sortByTime ? (sortCriteria.createdAt = -1) : (sortCriteria.viewCount = -1);
+
+    const groups = await Group.find(
+      newPosition || location || newSkill || type
+        ? {
+            $and: [
+              newPosition ? { position: { $in: newPosition } } : {},
+              location ? { location: location } : {},
+              newSkill ? { skills: { $in: newSkill } } : {},
+              type ? { type: type } : {},
+            ],
+          }
+        : {},
+    )
+      .sort(sortByTime ? { createdAt: -1 } : { viewCount: -1 })
       .skip(perPage * (page - 1))
       .limit(perPage);
+
+    const data = await Group.find(
+      newPosition || location || newSkill || type
+        ? {
+            $and: [
+              newPosition ? { position: { $in: newPosition } } : {},
+              location ? { location: location } : {},
+              newSkill ? { skills: { $in: newSkill } } : {},
+              type ? { type: type } : {},
+            ],
+          }
+        : {},
+    );
+    const total = data.length;
+    const totalPage = Math.ceil(total / perPage);
 
     res.json({
       data: {
@@ -30,6 +65,19 @@ export const getAllGroups = async (req: Request, res: Response) => {
       },
       error: null,
     });
+  } catch (err) {
+    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+  }
+};
+
+// 상위 4개 그룹 조회
+export const getHotGroups = async (req: Request, res: Response) => {
+  try {
+    const getData = await Group.find().sort({ viewCount: -1 }).limit(4);
+    if (!getData)
+      return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
+
+    res.json({ data: getData, error: null });
   } catch (err) {
     res.status(500).send({ data: null, error: `요청 실패 ${err}` });
   }
@@ -58,9 +106,16 @@ export const postGroup = async (req: Request, res: Response) => {
   try {
     const createGruopDto = req.body;
 
+    // if (!req.user) {
+    //   return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+    // }
+    // const userTokenInfo = req.user as reqUserInfo;
+    // const userId: string = userTokenInfo.userId;
+
     const groupData = {
       ...createGruopDto,
       position: JSON.parse(req.body.position),
+      skills: JSON.parse(req.body.skills),
       author: TEMP_USER_ID,
       currentMembers: [TEMP_USER_ID],
       imageUrl: req.file ? req.file.path : '',
@@ -107,9 +162,19 @@ export const deleteGroup = async (req: Request, res: Response) => {
     const { groupId } = req.params;
 
     const group = await Group.findByIdAndRemove(groupId);
-    if (!group) {
-      return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
-    }
+    // if (!group) {
+    //   return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
+    // }
+
+    await Join.deleteMany({ groupId });
+
+    await User.findOneAndUpdate(
+      { groups: { $in: groupId } },
+      {
+        $pull: { groups: groupId },
+      },
+      { new: true },
+    );
 
     res.json({ data: null, error: null });
   } catch (err) {
@@ -138,6 +203,15 @@ export const joinReqGroup = async (req: Request, res: Response) => {
         new: true,
       },
     );
+
+    const createdNotification = new Notification({
+      receiverId: currentGroup.author,
+      senderId: userId,
+      groupId: groupId,
+      type: currentGroup.type,
+      kind: 'join',
+      status: true,
+    });
 
     res.json({ data: null, error: null });
   } catch (err) {
@@ -238,7 +312,7 @@ export const rejectGroupJoinRequest = async (req: Request, res: Response) => {
     if (!reqJoin)
       return res.status(404).send({ data: null, error: `JOIN_NOT_FOUND` });
 
-    const { groupId, userId } = reqJoin;
+    const { groupId } = reqJoin;
 
     // 그룹에 현재 멤버 업데이트
     const updatedGroup = await Group.findByIdAndUpdate(
@@ -252,6 +326,67 @@ export const rejectGroupJoinRequest = async (req: Request, res: Response) => {
     const deletedJoin = await Join.deleteOne({ _id: joinId });
 
     res.status(204).send();
+  } catch (err) {
+    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+  }
+};
+
+// 현재 진행
+export const ongoingGroupList = async (req: Request, res: Response) => {
+  try {
+    // 토큰에서 user 고유 Id 가져오는 코드
+    // if (!req.user) {
+    //   return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+    // }
+    // const userTokenInfo = req.user as reqUserInfo;
+    // const userId: string = userTokenInfo.userId;
+
+    res.status(200).send({ data: null, error: null });
+  } catch (err) {
+    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+  }
+};
+//찜한
+export const wishlistGroupList = async (req: Request, res: Response) => {
+  try {
+    // 토큰에서 user 고유 Id 가져오는 코드
+    // if (!req.user) {
+    //   return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+    // }
+    // const userTokenInfo = req.user as reqUserInfo;
+    // const userId: string = userTokenInfo.userId;
+
+    res.status(200).send({ data: null, error: null });
+  } catch (err) {
+    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+  }
+};
+//생성한
+export const createdGroupList = async (req: Request, res: Response) => {
+  try {
+    // 토큰에서 user 고유 Id 가져오는 코드
+    // if (!req.user) {
+    //   return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+    // }
+    // const userTokenInfo = req.user as reqUserInfo;
+    // const userId: string = userTokenInfo.userId;
+
+    res.status(200).send({ data: null, error: null });
+  } catch (err) {
+    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+  }
+};
+//지원한
+export const joinGroupList = async (req: Request, res: Response) => {
+  try {
+    // 토큰에서 user 고유 Id 가져오는 코드
+    // if (!req.user) {
+    //   return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+    // }
+    // const userTokenInfo = req.user as reqUserInfo;
+    // const userId: string = userTokenInfo.userId;
+
+    res.status(200).send({ data: null, error: null });
   } catch (err) {
     res.status(500).send({ data: null, error: `요청 실패 ${err}` });
   }

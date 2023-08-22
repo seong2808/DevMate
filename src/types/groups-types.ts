@@ -3,15 +3,15 @@ import { Schema } from 'mongoose';
 export interface IGroup {
   title: string;
   author: typeof Schema.Types.ObjectId;
-  type: GroupTypes;
+  type: GroupType;
   description: string;
-  location: Locations;
+  location: Location;
   currentMembers: (typeof Schema.Types.ObjectId)[];
   completedDate?: Date;
-  position?: GroupPositions[];
+  position?: Position[];
   imageUrl?: string;
   dueDate?: string;
-  skills?: string[];
+  skills?: Skill[];
   maxMembers?: number;
   viewCount?: number;
   wishCount?: number;
@@ -19,41 +19,123 @@ export interface IGroup {
   joinReqList: (typeof Schema.Types.ObjectId)[];
 }
 
-export enum GroupTypes {
-  스터디 = '스터디',
-  프로젝트 = '프로젝트',
+export interface SortCriteria {
+  createdAt?: number;
+  viewCount?: number;
 }
 
-export enum GroupPositions {
-  프론트엔드 = '프론트엔드',
-  백엔드 = '백엔드',
-  디자이너 = '디자이너',
-  기획자 = '기획자',
-}
+export type Skill =
+  | 'Adobe'
+  | 'Android'
+  | 'Angular'
+  | 'Apache'
+  | 'Aws'
+  | 'Ec2'
+  | 'Babel'
+  | 'BootStrap'
+  | 'Cpp'
+  | 'C#'
+  | 'Css'
+  | 'Diango'
+  | 'Docker'
+  | 'Electron'
+  | 'Eslint'
+  | 'Figma'
+  | 'Firebase'
+  | 'Flask'
+  | 'Flutter'
+  | 'Gatsby'
+  | 'Git'
+  | 'Github'
+  | 'Gitlab'
+  | 'Go'
+  | 'GoogleAnalytics'
+  | 'Graphql'
+  | 'Heroku'
+  | 'Html'
+  | 'Illustrator'
+  | 'Insomnia'
+  | 'Java'
+  | 'JavaScript'
+  | 'Jest'
+  | 'Jira'
+  | 'Jquery'
+  | 'Kotlin'
+  | 'Kubernetes'
+  | 'Laravel'
+  | 'Linux'
+  | 'MongoDb'
+  | 'Mui'
+  | 'MySql'
+  | 'Nest'
+  | 'Netlify'
+  | 'Next'
+  | 'NodeJs'
+  | 'Npm'
+  | 'OAuth'
+  | 'OpenAi'
+  | 'Oracle'
+  | 'Photoshop'
+  | 'Php'
+  | 'PostgreSql'
+  | 'Postman'
+  | 'prettier'
+  | 'Prisma'
+  | 'Pug'
+  | 'Pwa'
+  | 'Python'
+  | 'Rails'
+  | 'React'
+  | 'ReactQuery'
+  | 'Redis'
+  | 'Redux'
+  | 'Ruby'
+  | 'Rust'
+  | 'Scss'
+  | 'Spring'
+  | 'Svelte'
+  | 'Swift'
+  | 'Tailwind'
+  | 'TypeScript'
+  | 'Vim'
+  | 'Vite'
+  | 'VsCode'
+  | 'Vue'
+  | 'Webpack'
+  | 'Wordpress'
+  | 'Xd';
 
-export enum GroupStatus {
-  모집중 = '모집중',
-  진행중 = '진행중',
-  완료 = '완료',
-}
+export type Location =
+  | '전국'
+  | '서울'
+  | '부산'
+  | '대구'
+  | '인천'
+  | '광주'
+  | '대전'
+  | '울산'
+  | '강원'
+  | '경기'
+  | '경남'
+  | '경북'
+  | '전남'
+  | '전북'
+  | '충남'
+  | '충북'
+  | '제주';
 
-export enum Locations {
-  전국 = '전국',
-  서울 = '서울',
-  세종 = '세종',
-  강원 = '강원',
-  인천 = '인천',
-  경기 = '경기',
-  충북 = '충북',
-  충남 = '충남',
-  경북 = '경북',
-  경남 = '경남',
-  대전 = '대전',
-  대구 = '대구',
-  전북 = '전북',
-  전남 = '전남',
-  울산 = '울산',
-  광주 = '광주',
-  부산 = '부산',
-  제주 = '제주',
-}
+export type Position =
+  | '프론트엔드'
+  | '백엔드'
+  | '디자이너'
+  | '기획자'
+  | '마케팅'
+  | 'PM'
+  | '퍼블리셔'
+  | '풀스택'
+  | 'QA'
+  | '전체';
+
+export type GroupType = 'study' | 'project';
+
+export type GroupStatus = '모집중' | '진행중' | '완료';
