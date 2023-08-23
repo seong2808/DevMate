@@ -9,6 +9,7 @@ import usersRoutes from './routes/users-routes';
 import passport from 'passport';
 import passportIndex from './passport';
 import getToken from './middlewares/get-token.handler';
+import { errorHandler } from './middlewares/error.handler';
 
 passportIndex();
 
@@ -24,6 +25,8 @@ app.use(getToken);
 app.use('/api/groups', groupRoutes);
 
 app.use('/api/users', usersRoutes);
+
+app.use(errorHandler);
 
 const initServer = async () => {
   try {
