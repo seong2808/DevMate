@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import User from '../models/User';
 import { reqUserInfo } from '../types/users-types';
 import bcrypt from 'bcrypt';
+import { HttpError } from './error.handler';
 
 const validatePassword = async (
   req: Request,
@@ -17,7 +18,7 @@ const validatePassword = async (
   const isPasswordValid = await bcrypt.compare(password, foundUser.password); //유저 입력 패스워드와 DB 패스워드 비교
 
   if (!isPasswordValid) {
-    return res.status(401).json({ message: '비밀번호가 일치하지 않습니다.' });
+    return next(new HttpError('비밀번호가 일치하지 않습니다.', 401));
   }
   next();
 };

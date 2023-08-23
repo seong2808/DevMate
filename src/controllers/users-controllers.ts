@@ -12,7 +12,7 @@ export const getAllUsers = async (
   next: NextFunction,
 ) => {
   const users = await User.find();
-  res.json({ users: users });
+  res.json({ data: { users }, error: null });
 };
 
 // 사용자 로그인 API
@@ -37,7 +37,7 @@ export const login = async (
 };
 
 //내 정보 조회 API
-export const getMyprofile = async (
+export const getMyProfile = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -57,7 +57,10 @@ export const getMyprofile = async (
       return next(new HttpError('사용자를 찾을 수 없습니다.', 404));
     }
 
-    res.json({ users: foundUser });
+    res.json({
+      data: { foundUser },
+      error: null,
+    });
   } catch (err) {
     const error = new HttpError('서버 에러 발생', 500);
     return next(error);
@@ -79,7 +82,10 @@ export const getUserInfo = async (
       return next(new HttpError('사용자를 찾을 수 없습니다.', 404));
     }
 
-    res.json({ users: foundUser });
+    res.json({
+      data: { foundUser },
+      error: null,
+    });
   } catch (err) {
     const error = new HttpError('서버 에러 발생', 500);
     return next(error);
@@ -116,10 +122,13 @@ export const signup = async (
     return next(error);
   }
 
-  res.json({ message: 'Sign up' });
+  res.json({
+    data: { message: '회원 가입 성공' },
+    error: null,
+  });
 };
 
-//사용자 정보 수정 API (완료)
+//사용자 정보 수정 API
 export const updateUsers = async (
   req: Request,
   res: Response,
@@ -149,14 +158,17 @@ export const updateUsers = async (
     const updatedUser = await User.findByIdAndUpdate(userId, updates, {
       new: true,
     });
-    res.json({ message: 'update success!' });
+    res.json({
+      data: { updatedUser },
+      error: null,
+    });
   } catch (err) {
     const error = new HttpError('서버 에러 발생', 500);
     return next(error);
   }
 };
 
-//사용자 정보 삭제(탈퇴) API (완료)
+//사용자 정보 삭제(탈퇴) API
 export const deleteUsers = async (
   req: Request,
   res: Response,
@@ -172,7 +184,7 @@ export const deleteUsers = async (
 
   try {
     const userToDelete = await User.findByIdAndDelete(userId);
-    res.json({ message: 'Delete success' });
+    res.status(204).json({ message: '삭제 완료' }); // redirect 여부 의논 필요
   } catch (err) {
     const error = new HttpError('서버 에러 발생', 500);
     return next(error);
