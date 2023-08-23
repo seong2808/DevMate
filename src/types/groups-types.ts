@@ -138,4 +138,4 @@ export type Position =
 
 export type GroupType = 'study' | 'project';
 
-export type GroupStatus = '모집중' | '진행중' | '완료';
+export type GroupStatus = '모집중' | '진행중' | '종료';
