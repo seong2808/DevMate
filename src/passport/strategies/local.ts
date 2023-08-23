@@ -19,7 +19,7 @@ const local = new LocalStrategy(
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
       if (!isPasswordValid) {
-        return done(null, false, { message: '비밀번호 에러' });
+        return done(null, false, { message: '비밀번호를 확인해주세요.' });
       }
 
       return done(null, user);
