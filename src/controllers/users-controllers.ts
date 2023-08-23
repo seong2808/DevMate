@@ -126,7 +126,7 @@ export const signup = async (
   }
 };
 
-//사용자 정보 수정 API
+//사용자 정보 수정 API (완료)
 export const updateUsers = async (
   req: Request,
   res: Response,
@@ -167,7 +167,7 @@ export const updateUsers = async (
   }
 };
 
-//사용자 정보 삭제(탈퇴) API
+//사용자 정보 삭제(탈퇴) API (완료)
 export const deleteUsers = async (
   req: Request,
   res: Response,
