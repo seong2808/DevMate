@@ -16,6 +16,7 @@ import {
   getOngoingGroupList,
   patchWishlist,
   deleteOneWishlist,
+  patchEndGroup,
 } from '../controllers/groupsControllers';
 import { handleGroupVisit } from '../middlewares/group.handler';
 import upload from '../middlewares/uploadFile.handler';
@@ -48,6 +49,8 @@ router.post(
   isLoggedIn,
   postGroup,
 );
+
+router.patch('/endGroup/:groupId', isLoggedIn, patchEndGroup);
 
 router.patch('/:groupId', upload.single('imageFile'), patchGroup);
 

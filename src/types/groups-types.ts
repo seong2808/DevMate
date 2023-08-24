@@ -12,7 +12,7 @@ export interface IGroup {
   imageUrl?: string;
   dueDate?: string;
   skills?: Skill[];
-  maxMembers?: number;
+  maxMembers: number;
   viewCount?: number;
   wishCount?: number;
   status?: GroupStatus;

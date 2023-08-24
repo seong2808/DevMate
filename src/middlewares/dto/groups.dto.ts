@@ -34,7 +34,6 @@ export class CreateGroupDto {
   dueDate: string;
 
   // maxMembers => 제한이 있는가?
-  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   maxMembers: number;

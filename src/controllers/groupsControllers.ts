@@ -189,12 +189,19 @@ export const deleteGroup = async (req: Request, res: Response) => {
 
     await Join.deleteMany({ groupId });
 
-    await User.findOneAndUpdate(
-      { groups: { $in: groupId } },
-      {
-        $pull: { groups: groupId },
-      },
-      { new: true },
+    await User.updateMany(
+      { ongoingGroup: groupId },
+      { $pull: { ongoingGroup: groupId } },
+    );
+
+    await User.updateMany(
+      { endGroup: groupId },
+      { $pull: { endGroup: groupId } },
+    );
+
+    await User.updateMany(
+      { createdGroup: groupId },
+      { $pull: { createdGroup: groupId } },
     );
 
     res.json({ data: null, error: null });
@@ -382,7 +389,7 @@ export const getOngoingGroupList = async (req: Request, res: Response) => {
     const foundUser = await User.findById(userId).populate('groups');
     if (!foundUser)
       return res.status(404).json({ data: null, error: 'USER_NOT_FOUND!!' });
-    const getData = foundUser.groups;
+    const getData = foundUser.ongoingGroup;
     const fillteredData = getData.filter((data: any) => data.status !== '종료');
 
     res.status(200).json({ data: { fillteredData }, error: null });
@@ -498,6 +505,35 @@ export const deleteOneWishlist = async (req: Request, res: Response) => {
     );
 
     res.status(200).json({ data: null, error: null });
+  } catch (err) {
+    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+  }
+};
+
+// 그룹 종료
+export const patchEndGroup = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+    }
+    const userTokenInfo = req.user as reqUserInfo;
+    const userId: string = userTokenInfo.userId;
+    const { groupId } = req.params;
+
+    await Group.findByIdAndUpdate(groupId, { status: '종료' }, { new: true });
+
+    await User.findByIdAndUpdate(userId, { createdGroup: null }, { new: true });
+
+    await User.updateMany(
+      { ongoingGroup: groupId },
+      {
+        $pull: { ongoingGroup: groupId },
+        $push: { endGroup: groupId },
+      },
+      { new: true },
+    );
+
+    res.status(204).json();
   } catch (err) {
     res.status(500).json({ data: null, error: `요청 실패 ${err}` });
   }
