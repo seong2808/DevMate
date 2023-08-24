@@ -51,7 +51,7 @@ export const getMyProfile = async (
   const userId: string = userTokenInfo.userId;
 
   try {
-    const foundUser = await User.findById(userId);
+    const foundUser = await User.findById(userId, '-password'); //password 제외
 
     if (!foundUser) {
       return next(new HttpError('사용자를 찾을 수 없습니다.', 404));
@@ -76,8 +76,7 @@ export const getUserInfo = async (
   const userId: string = req.params.userId;
 
   try {
-    const foundUser = await User.findById(userId);
-
+    const foundUser = await User.findById(userId, '-password');
     if (!foundUser) {
       return next(new HttpError('사용자를 찾을 수 없습니다.', 404));
     }
@@ -117,15 +116,14 @@ export const signup = async (
   const createdUser = new User({ email, nickname, password: hashedPassword });
   try {
     await createdUser.save();
+    res.status(201).json({
+      data: { message: '회원 가입 성공' },
+      error: null,
+    });
   } catch (err) {
     const error = new HttpError('서버 에러 발생', 500);
     return next(error);
   }
-
-  res.json({
-    data: { message: '회원 가입 성공' },
-    error: null,
-  });
 };
 
 //사용자 정보 수정 API
@@ -157,6 +155,7 @@ export const updateUsers = async (
   try {
     const updatedUser = await User.findByIdAndUpdate(userId, updates, {
       new: true,
+      select: '-password',
     });
     res.json({
       data: { updatedUser },
