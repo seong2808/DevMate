@@ -192,7 +192,7 @@ const groupSchema = new Schema<IGroup>(
 
     status: {
       type: String,
-      enum: ['모집중', '진행중', '완료'],
+      enum: ['모집중', '진행중', '종료'],
       default: '모집중',
     },
 

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { CreateGroupDto } from '../dto/groups.dto';
+import { CreateGroupDto } from './dto/groups.dto';
 import { validate } from 'class-validator';
 import { plainToClass } from 'class-transformer';
 
