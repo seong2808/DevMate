@@ -1,0 +1,20 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const users_controllers_1 = require("../controllers/users-controllers");
+const login_required_handler_1 = __importDefault(require("../middlewares/login-required.handler"));
+const validate_password_handler_1 = __importDefault(require("../middlewares/validate-password.handler"));
+const passport_1 = __importDefault(require("passport"));
+const uploadFile_handler_1 = __importDefault(require("../middlewares/uploadFile.handler"));
+const router = express_1.default.Router();
+router.get('/', users_controllers_1.getAllUsers);
+router.get('/myProfile', login_required_handler_1.default, users_controllers_1.getMyProfile);
+router.get('/profile/:userId', users_controllers_1.getUserInfo);
+router.post('/signup', users_controllers_1.signup);
+router.patch('/profile', login_required_handler_1.default, uploadFile_handler_1.default.single('imageFile'), users_controllers_1.updateUsers);
+router.delete('/', login_required_handler_1.default, validate_password_handler_1.default, users_controllers_1.deleteUsers);
+router.post('/login', passport_1.default.authenticate('local', { session: false }), users_controllers_1.login);
+exports.default = router;

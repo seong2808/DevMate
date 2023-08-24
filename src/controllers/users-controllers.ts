@@ -5,7 +5,7 @@ import generateJWT from '../utils/generate-jwt';
 import hashPassword from '../utils/hash-password';
 import { HttpError } from '../middlewares/error.handler';
 
-//전체 사용자 정보 조회 (추후 삭제 예정)
+//전체 사용자 정보 조회 (추후 삭제)
 export const getAllUsers = async (
   req: Request,
   res: Response,
