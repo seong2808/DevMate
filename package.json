@@ -8,7 +8,7 @@
     "start:mac": "export FILE_PATH=src/server.ts && nodemon --watch $FILE_PATH --exec ts-node-dev $FILE_PATH",
     "lint": "eslint src",
     "build": "tsc",
-    "start": "node build/index.js"
+    "start": "node dist/index.js"
   },
   "author": "",
   "license": "ISC",
