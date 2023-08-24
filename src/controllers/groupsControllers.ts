@@ -56,9 +56,10 @@ export const getAllGroups = async (req: Request, res: Response) => {
               location ? { location: location } : {},
               newSkill ? { skills: { $in: newSkill } } : {},
               type ? { type: type } : {},
+              { status: '모집중' },
             ],
           }
-        : {},
+        : { status: '모집중' },
     );
     const total = data.length;
     const totalPage = Math.ceil(total / perPage);
