@@ -5,6 +5,8 @@ import Group from '../models/Group';
 import Join from '../models/Join';
 import { SortCriteria } from '../types/groups-types';
 import Notification from '../models/Notification';
+import { reqUserInfo } from '../types/users-types';
+import mongoose from 'mongoose';
 
 const TEMP_USER_ID = '64dc65801ded8e6a83b9d760';
 
@@ -35,9 +37,12 @@ export const getAllGroups = async (req: Request, res: Response) => {
               location ? { location: location } : {},
               newSkill ? { skills: { $in: newSkill } } : {},
               type ? { type: type } : {},
+              { status: '모집중' },
             ],
           }
-        : {},
+        : {
+            status: '모집중',
+          },
     )
       .sort(sortByTime ? { createdAt: -1 } : { viewCount: -1 })
       .skip(perPage * (page - 1))
@@ -66,7 +71,7 @@ export const getAllGroups = async (req: Request, res: Response) => {
       error: null,
     });
   } catch (err) {
-    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
   }
 };
 
@@ -77,9 +82,9 @@ export const getHotGroups = async (req: Request, res: Response) => {
     if (!getData)
       return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
 
-    res.json({ data: getData, error: null });
+    res.json({ data: { getData }, error: null });
   } catch (err) {
-    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
   }
 };
 
@@ -95,9 +100,9 @@ export const getGroup = async (req: Request, res: Response) => {
       return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
     }
 
-    res.json({ data: group, error: null });
+    res.json({ data: { group }, error: null });
   } catch (err) {
-    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
   }
 };
 
@@ -106,26 +111,42 @@ export const postGroup = async (req: Request, res: Response) => {
   try {
     const createGruopDto = req.body;
 
-    // if (!req.user) {
-    //   return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
-    // }
-    // const userTokenInfo = req.user as reqUserInfo;
-    // const userId: string = userTokenInfo.userId;
+    if (!req.user) {
+      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+    }
+    const userTokenInfo = req.user as reqUserInfo;
+    const userId: string = userTokenInfo.userId;
+
+    const user = await User.findById(userId);
+    if (!user)
+      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+    const userCreatedGroup = user.createdGroup;
+    if (userCreatedGroup || mongoose.isValidObjectId(userCreatedGroup))
+      return res.status(400).json({ data: null, error: 'GROUP_EXISTS' });
 
     const groupData = {
       ...createGruopDto,
       position: JSON.parse(req.body.position),
       skills: JSON.parse(req.body.skills),
-      author: TEMP_USER_ID,
-      currentMembers: [TEMP_USER_ID],
+      author: userId,
+      currentMembers: [userId],
       imageUrl: req.file ? req.file.path : '',
     };
 
     const newGroup = new Group(groupData);
-    await newGroup.save();
+    const createdGroup = await newGroup.save();
+
+    const updatedData = await User.findByIdAndUpdate(
+      userId,
+      { createdGroup: createdGroup._id },
+      { new: true },
+    );
+
+    console.log(updatedData, updatedData?.createdGroup.prototype);
+
     res.json({ data: null, error: null });
   } catch (err) {
-    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
   }
 };
 
@@ -168,17 +189,24 @@ export const deleteGroup = async (req: Request, res: Response) => {
 
     await Join.deleteMany({ groupId });
 
-    await User.findOneAndUpdate(
-      { groups: { $in: groupId } },
-      {
-        $pull: { groups: groupId },
-      },
-      { new: true },
+    await User.updateMany(
+      { ongoingGroup: groupId },
+      { $pull: { ongoingGroup: groupId } },
+    );
+
+    await User.updateMany(
+      { endGroup: groupId },
+      { $pull: { endGroup: groupId } },
+    );
+
+    await User.updateMany(
+      { createdGroup: groupId },
+      { $pull: { createdGroup: groupId } },
     );
 
     res.json({ data: null, error: null });
   } catch (err) {
-    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
   }
 };
 
@@ -204,6 +232,14 @@ export const joinReqGroup = async (req: Request, res: Response) => {
       },
     );
 
+    await User.findByIdAndUpdate(
+      userId,
+      { $push: { joinRequestGroup: groupId } },
+      {
+        new: true,
+      },
+    );
+
     const createdNotification = new Notification({
       receiverId: currentGroup.author,
       senderId: userId,
@@ -215,7 +251,7 @@ export const joinReqGroup = async (req: Request, res: Response) => {
 
     res.json({ data: null, error: null });
   } catch (err) {
-    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
   }
 };
 
@@ -260,7 +296,7 @@ export const getGroupJoinList = async (req: Request, res: Response) => {
       error: null,
     });
   } catch (err) {
-    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
   }
 };
 
@@ -272,7 +308,7 @@ export const approveGroupJoinRequest = async (req: Request, res: Response) => {
     const reqJoin = await Join.findById({ _id: joinId });
 
     if (!reqJoin)
-      return res.status(404).send({ data: null, error: `JOIN_NOT_FOUND` });
+      return res.status(404).json({ data: null, error: `JOIN_NOT_FOUND` });
 
     const { groupId, userId } = reqJoin;
 
@@ -289,16 +325,16 @@ export const approveGroupJoinRequest = async (req: Request, res: Response) => {
     // 유저에 속해 있는 그룹 업데이트
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { $addToSet: { groups: groupId } },
+      { $addToSet: { groups: groupId }, $pull: { joinRequestGroup: groupId } },
       { new: true },
     );
 
     //해당 Join 삭제
     const deletedJoin = await Join.deleteOne({ _id: joinId });
 
-    res.status(204).send();
+    res.status(204).json();
   } catch (err) {
-    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
   }
 };
 
@@ -310,84 +346,195 @@ export const rejectGroupJoinRequest = async (req: Request, res: Response) => {
     const reqJoin = await Join.findById({ _id: joinId });
 
     if (!reqJoin)
-      return res.status(404).send({ data: null, error: `JOIN_NOT_FOUND` });
+      return res.status(404).json({ data: null, error: `JOIN_NOT_FOUND` });
 
-    const { groupId } = reqJoin;
+    const { groupId, userId } = reqJoin;
 
     // 그룹에 현재 멤버 업데이트
-    const updatedGroup = await Group.findByIdAndUpdate(
+    await Group.findByIdAndUpdate(
       groupId,
       {
         $pull: { joinReqList: joinId },
       },
       { new: true },
     );
+    console.log(userId);
+
+    await User.findByIdAndUpdate(
+      userId,
+      {
+        $pull: { joinRequestGroup: groupId },
+      },
+      { new: true },
+    );
 
     const deletedJoin = await Join.deleteOne({ _id: joinId });
 
-    res.status(204).send();
+    res.status(204).json();
   } catch (err) {
-    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
   }
 };
 
-// 현재 진행
-export const ongoingGroupList = async (req: Request, res: Response) => {
+// 진행 그룹
+export const getOngoingGroupList = async (req: Request, res: Response) => {
   try {
     // 토큰에서 user 고유 Id 가져오는 코드
-    // if (!req.user) {
-    //   return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
-    // }
-    // const userTokenInfo = req.user as reqUserInfo;
-    // const userId: string = userTokenInfo.userId;
+    if (!req.user) {
+      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+    }
+    const userTokenInfo = req.user as reqUserInfo;
+    const userId: string = userTokenInfo.userId;
 
-    res.status(200).send({ data: null, error: null });
+    const foundUser = await User.findById(userId).populate('groups');
+    if (!foundUser)
+      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND!!' });
+    const getData = foundUser.ongoingGroup;
+    const fillteredData = getData.filter((data: any) => data.status !== '종료');
+
+    res.status(200).json({ data: { fillteredData }, error: null });
   } catch (err) {
-    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
   }
 };
-//찜한
-export const wishlistGroupList = async (req: Request, res: Response) => {
+
+// 관심 그룹
+export const getWishGroupList = async (req: Request, res: Response) => {
   try {
     // 토큰에서 user 고유 Id 가져오는 코드
-    // if (!req.user) {
-    //   return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
-    // }
-    // const userTokenInfo = req.user as reqUserInfo;
-    // const userId: string = userTokenInfo.userId;
+    if (!req.user) {
+      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+    }
+    const userTokenInfo = req.user as reqUserInfo;
+    const userId: string = userTokenInfo.userId;
 
-    res.status(200).send({ data: null, error: null });
+    const foundUser = await User.findById(userId).populate('wishList');
+    if (!foundUser)
+      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND!!' });
+
+    const wishList = foundUser.wishList;
+    res.status(200).json({ data: { wishList }, error: null });
   } catch (err) {
-    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
   }
 };
-//생성한
-export const createdGroupList = async (req: Request, res: Response) => {
+
+// 생성 그룹
+export const getCreatedGroupList = async (req: Request, res: Response) => {
   try {
     // 토큰에서 user 고유 Id 가져오는 코드
-    // if (!req.user) {
-    //   return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
-    // }
-    // const userTokenInfo = req.user as reqUserInfo;
-    // const userId: string = userTokenInfo.userId;
+    if (!req.user) {
+      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND!!' });
+    }
+    const userTokenInfo = req.user as reqUserInfo;
+    const userId: string = userTokenInfo.userId;
 
-    res.status(200).send({ data: null, error: null });
+    const foundUser = await User.findById(userId).populate('createdGroup');
+    if (!foundUser)
+      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+
+    const createdGroup = foundUser.createdGroup;
+
+    res.status(200).json({ data: { createdGroup }, error: null });
   } catch (err) {
-    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
   }
 };
-//지원한
+
+// 지원 그룹
 export const joinGroupList = async (req: Request, res: Response) => {
   try {
     // 토큰에서 user 고유 Id 가져오는 코드
-    // if (!req.user) {
-    //   return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
-    // }
-    // const userTokenInfo = req.user as reqUserInfo;
-    // const userId: string = userTokenInfo.userId;
+    if (!req.user) {
+      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+    }
+    const userTokenInfo = req.user as reqUserInfo;
+    const userId: string = userTokenInfo.userId;
 
-    res.status(200).send({ data: null, error: null });
+    const foundUser = await User.findById(userId).populate('joinRequestGroup');
+    if (!foundUser)
+      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+    const joinRequestGroup = foundUser.joinRequestGroup;
+
+    res.status(200).json({ data: { joinRequestGroup }, error: null });
   } catch (err) {
-    res.status(500).send({ data: null, error: `요청 실패 ${err}` });
+    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+  }
+};
+
+// 관심 그룹 등록
+export const patchWishlist = async (req: Request, res: Response) => {
+  try {
+    // 토큰에서 user 고유 Id 가져오는 코드
+    if (!req.user) {
+      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+    }
+    const userTokenInfo = req.user as reqUserInfo;
+    const userId: string = userTokenInfo.userId;
+    const { groupId } = req.params;
+
+    // 유저에 속해 있는 그룹 업데이트
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $addToSet: { wishList: groupId } },
+      { new: true },
+    );
+
+    res.status(200).json({ data: null, error: null });
+  } catch (err) {
+    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+  }
+};
+
+// 관심 그룹 해제
+export const deleteOneWishlist = async (req: Request, res: Response) => {
+  try {
+    // 토큰에서 user 고유 Id 가져오는 코드
+    if (!req.user) {
+      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+    }
+    const userTokenInfo = req.user as reqUserInfo;
+    const userId: string = userTokenInfo.userId;
+    const { groupId } = req.params;
+
+    // 유저에 속해 있는 그룹 업데이트
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $pull: { wishList: groupId } },
+      { new: true },
+    );
+
+    res.status(200).json({ data: null, error: null });
+  } catch (err) {
+    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+  }
+};
+
+// 그룹 종료
+export const patchEndGroup = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+    }
+    const userTokenInfo = req.user as reqUserInfo;
+    const userId: string = userTokenInfo.userId;
+    const { groupId } = req.params;
+
+    await Group.findByIdAndUpdate(groupId, { status: '종료' }, { new: true });
+
+    await User.findByIdAndUpdate(userId, { createdGroup: null }, { new: true });
+
+    await User.updateMany(
+      { ongoingGroup: groupId },
+      {
+        $pull: { ongoingGroup: groupId },
+        $push: { endGroup: groupId },
+      },
+      { new: true },
+    );
+
+    res.status(204).json();
+  } catch (err) {
+    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
   }
 };
