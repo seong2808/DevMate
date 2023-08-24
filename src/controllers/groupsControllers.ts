@@ -245,7 +245,7 @@ export const getGroupJoinList = async (req: Request, res: Response) => {
       const user = await User.findById(joinReq?.userId);
       if (!joinReq || !user) continue;
       const data = {
-        nickname: user.nickName,
+        nickname: user.nickname,
         content: joinReq.content,
         email: user.email,
         userImage: user.profileImage,

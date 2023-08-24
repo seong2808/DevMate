@@ -2,7 +2,7 @@ import express from 'express';
 import {
   getAllUsers,
   getUserInfo,
-  getMyprofile,
+  getMyProfile,
   signup,
   updateUsers,
   deleteUsers,
@@ -17,7 +17,7 @@ const router = express.Router();
 
 router.get('/', getAllUsers);
 
-router.get('/myProfile', isLoggedIn, getMyprofile);
+router.get('/myProfile', isLoggedIn, getMyProfile);
 
 router.get('/profile/:userId', getUserInfo);
 
