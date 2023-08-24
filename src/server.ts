@@ -33,11 +33,15 @@ app.use(errorHandler);
 
 const initServer = async () => {
   try {
-    await mongoose.connect(
-      'mongodb+srv://devmate:elice1234@devmate.eknxqd6.mongodb.net/devmate?retryWrites=true&w=majority',
-    );
-    console.log('DB 연결');
-    const PORT = 8000;
+    const MONGO_DB = process.env.MONGO_DB;
+
+    if (!MONGO_DB) {
+      throw new Error('MONGO_DB environment variable is not set.');
+    }
+
+    await mongoose.connect(MONGO_DB);
+    console.log('DB 연결 완료');
+    const PORT = process.env.PORT;
     app.listen(PORT, () => {
       console.log(`서버 실행, 포트 : ${PORT}`);
     });
