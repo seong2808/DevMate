@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import {
-  getAllGroups,
   getGroup,
   postGroup,
   patchGroup,
@@ -17,15 +16,23 @@ import {
   patchWishlist,
   deleteOneWishlist,
   patchEndGroup,
-} from '../controllers/groupsControllers';
+} from '../controllers/groups-controller';
+
 import { handleGroupVisit } from '../middlewares/group.handler';
 import upload from '../middlewares/uploadFile.handler';
 import { handleDtoValidate } from '../middlewares/validateDto.handler';
 import isLoggedIn from '../middlewares/login-required.handler';
+import GroupController from '../controllers/groupsController';
+import Group from '../models/Group';
+import GroupsService from '../services/groups-service';
 
 const router = Router();
+const groupsService = new GroupsService();
+const groupsController = new GroupController(groupsService);
 
-router.get('/', handleGroupVisit, getAllGroups);
+// router.get('/', handleGroupVisit, getAllGroups);
+
+router.get('/', handleGroupVisit, groupsController.getAllGroup);
 
 router.get('/:groupId', handleGroupVisit, getGroup);
 
