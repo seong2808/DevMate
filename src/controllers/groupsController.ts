@@ -84,7 +84,7 @@ class GroupController {
       const userTokenInfo = req.user as reqUserInfo;
       const userId: string = userTokenInfo.userId;
       console.log(userId);
-      const user = await this.usersService.oneUser(userId);
+      const user = await this.usersService.getMyInfo(userId);
       if (!user) {
         return next(new HttpError('USER_NOT_FOUND', 404));
       }
