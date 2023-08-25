@@ -1,8 +1,9 @@
+import mongoose from 'mongoose';
 import Group from '../models/Group';
 import User from '../models/User';
 import { SortCriteria } from '../types/groups-types';
 
-class GroupsService {
+class GroupService {
   async findAllGroup(
     page: number,
     perPage: number,
@@ -80,7 +81,10 @@ class GroupsService {
     return;
   }
 
-  async updateGroup(groupId: string, updatedData: object) {
+  async updateGroup(
+    groupId: string | typeof mongoose.Schema.Types.ObjectId,
+    updatedData: object,
+  ) {
     const updatedGroup = await Group.findByIdAndUpdate(groupId, updatedData, {
       new: true,
     });
@@ -110,4 +114,4 @@ class GroupsService {
   }
 }
 
-export default GroupsService;
+export default GroupService;

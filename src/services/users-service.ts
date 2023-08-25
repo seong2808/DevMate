@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import User from '../models/User';
 import { IUser } from '../types/users-types';
 
@@ -23,7 +24,10 @@ class UserService {
     return foundUser;
   }
 
-  async updateUser(userId: string, updates: IUser) {
+  async updateUser(
+    userId: string | typeof mongoose.Schema.Types.ObjectId,
+    updates: IUser | object,
+  ) {
     const updatedUser = await User.findByIdAndUpdate(userId, updates, {
       new: true,
       select: '-password',
@@ -33,6 +37,11 @@ class UserService {
 
   async deleteUser(userId: string) {
     await User.findByIdAndDelete(userId);
+  }
+
+  async findOngoingGroupList(userId: string) {
+    const foundUser = await User.findById(userId).populate('groups');
+    return foundUser;
   }
 }
 
