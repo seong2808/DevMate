@@ -210,170 +210,170 @@ const TEMP_USER_ID = '64dc65801ded8e6a83b9d760';
 // };
 
 // 그룹 참여 요청
-export const joinReqGroup = async (req: Request, res: Response) => {
-  try {
-    const { groupId } = req.params;
-    const { userId, content } = req.body;
-    const newJoin = new Join({ userId, groupId, content });
+// export const joinReqGroup = async (req: Request, res: Response) => {
+//   try {
+//     const { groupId } = req.params;
+//     const { userId, content } = req.body;
+//     const newJoin = new Join({ userId, groupId, content });
 
-    const saveJoin = await newJoin.save();
+//     const saveJoin = await newJoin.save();
 
-    const currentGroup = await Group.findById(groupId);
+//     const currentGroup = await Group.findById(groupId);
 
-    if (!currentGroup)
-      return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
+//     if (!currentGroup)
+//       return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
 
-    await Group.findByIdAndUpdate(
-      groupId,
-      { $push: { joinReqList: saveJoin._id } },
-      {
-        new: true,
-      },
-    );
+//     await Group.findByIdAndUpdate(
+//       groupId,
+//       { $push: { joinReqList: saveJoin._id } },
+//       {
+//         new: true,
+//       },
+//     );
 
-    await User.findByIdAndUpdate(
-      userId,
-      { $push: { joinRequestGroup: groupId } },
-      {
-        new: true,
-      },
-    );
+//     await User.findByIdAndUpdate(
+//       userId,
+//       { $push: { joinRequestGroup: groupId } },
+//       {
+//         new: true,
+//       },
+//     );
 
-    const createdNotification = new Notification({
-      receiverId: currentGroup.author,
-      senderId: userId,
-      groupId: groupId,
-      type: currentGroup.type,
-      kind: 'join',
-      status: true,
-    });
+//     const createdNotification = new Notification({
+//       receiverId: currentGroup.author,
+//       senderId: userId,
+//       groupId: groupId,
+//       type: currentGroup.type,
+//       kind: 'join',
+//       status: true,
+//     });
 
-    res.json({ data: null, error: null });
-  } catch (err) {
-    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
-  }
-};
+//     res.json({ data: null, error: null });
+//   } catch (err) {
+//     res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+//   }
+// };
 
 // 그룹 참여 신청 리스트
-export const getGroupJoinList = async (req: Request, res: Response) => {
-  try {
-    const getData: object[] = [];
+// export const getGroupJoinList = async (req: Request, res: Response) => {
+//   try {
+//     const getData: object[] = [];
 
-    const { groupId } = req.params;
-    const getGroupJoinList = await Group.findById(groupId);
-    const joinReqList = getGroupJoinList?.joinReqList ?? [];
+//     const { groupId } = req.params;
+//     const getGroupJoinList = await Group.findById(groupId);
+//     const joinReqList = getGroupJoinList?.joinReqList ?? [];
 
-    const page = Number(req.query.page);
-    const perPage = Number(req.query.perPage);
-    const total = joinReqList.length;
-    const totalPage = Math.ceil(total / perPage);
+//     const page = Number(req.query.page);
+//     const perPage = Number(req.query.perPage);
+//     const total = joinReqList.length;
+//     const totalPage = Math.ceil(total / perPage);
 
-    if (!joinReqList)
-      return res.status(404).json({ data: null, error: 'JOINLIST_NOT_FOUND' });
+//     if (!joinReqList)
+//       return res.status(404).json({ data: null, error: 'JOINLIST_NOT_FOUND' });
 
-    let limit = 0;
+//     let limit = 0;
 
-    for (let i = (page - 1) * perPage; i < total; i++) {
-      if (limit === perPage) break;
+//     for (let i = (page - 1) * perPage; i < total; i++) {
+//       if (limit === perPage) break;
 
-      const joinReq = await Join.findById(joinReqList[i]);
-      const user = await User.findById(joinReq?.userId);
-      if (!joinReq || !user) continue;
-      const data = {
-        nickname: user.nickname,
-        content: joinReq.content,
-        email: user.email,
-        userImage: user.profileImage,
-        links: user.links,
-      };
-      getData.push(data);
-      limit++;
-    }
+//       const joinReq = await Join.findById(joinReqList[i]);
+//       const user = await User.findById(joinReq?.userId);
+//       if (!joinReq || !user) continue;
+//       const data = {
+//         nickname: user.nickname,
+//         content: joinReq.content,
+//         email: user.email,
+//         userImage: user.profileImage,
+//         links: user.links,
+//       };
+//       getData.push(data);
+//       limit++;
+//     }
 
-    res.json({
-      data: { getData, totalPage, totalReqCount: total },
-      error: null,
-    });
-  } catch (err) {
-    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
-  }
-};
+//     res.json({
+//       data: { getData, totalPage, totalReqCount: total },
+//       error: null,
+//     });
+//   } catch (err) {
+//     res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+//   }
+// };
 
 // 그룹 신청 승인
-export const approveGroupJoinRequest = async (req: Request, res: Response) => {
-  try {
-    const { joinId } = req.params;
+// export const approveGroupJoinRequest = async (req: Request, res: Response) => {
+//   try {
+//     const { joinId } = req.params;
 
-    const reqJoin = await Join.findById({ _id: joinId });
+//     const reqJoin = await Join.findById({ _id: joinId });
 
-    if (!reqJoin)
-      return res.status(404).json({ data: null, error: `JOIN_NOT_FOUND` });
+//     if (!reqJoin)
+//       return res.status(404).json({ data: null, error: `JOIN_NOT_FOUND` });
 
-    const { groupId, userId } = reqJoin;
+//     const { groupId, userId } = reqJoin;
 
-    // 그룹에 현재 멤버 업데이트
-    const updatedGroup = await Group.findByIdAndUpdate(
-      groupId,
-      {
-        $addToSet: { currentMembers: userId },
-        $pull: { joinReqList: joinId },
-      },
-      { new: true },
-    );
+//     // 그룹에 현재 멤버 업데이트
+//     const updatedGroup = await Group.findByIdAndUpdate(
+//       groupId,
+//       {
+//         $addToSet: { currentMembers: userId },
+//         $pull: { joinReqList: joinId },
+//       },
+//       { new: true },
+//     );
 
-    // 유저에 속해 있는 그룹 업데이트
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { $addToSet: { groups: groupId }, $pull: { joinRequestGroup: groupId } },
-      { new: true },
-    );
+//     // 유저에 속해 있는 그룹 업데이트
+//     const updatedUser = await User.findByIdAndUpdate(
+//       userId,
+//       { $addToSet: { groups: groupId }, $pull: { joinRequestGroup: groupId } },
+//       { new: true },
+//     );
 
-    //해당 Join 삭제
-    const deletedJoin = await Join.deleteOne({ _id: joinId });
+//     //해당 Join 삭제
+//     const deletedJoin = await Join.deleteOne({ _id: joinId });
 
-    res.status(204).json();
-  } catch (err) {
-    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
-  }
-};
+//     res.status(204).json();
+//   } catch (err) {
+//     res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+//   }
+// };
 
 // 그룹 신청 거절
-export const rejectGroupJoinRequest = async (req: Request, res: Response) => {
-  try {
-    const { joinId } = req.params;
+// export const rejectGroupJoinRequest = async (req: Request, res: Response) => {
+//   try {
+//     const { joinId } = req.params;
 
-    const reqJoin = await Join.findById({ _id: joinId });
+//     const reqJoin = await Join.findById({ _id: joinId });
 
-    if (!reqJoin)
-      return res.status(404).json({ data: null, error: `JOIN_NOT_FOUND` });
+//     if (!reqJoin)
+//       return res.status(404).json({ data: null, error: `JOIN_NOT_FOUND` });
 
-    const { groupId, userId } = reqJoin;
+//     const { groupId, userId } = reqJoin;
 
-    // 그룹에 현재 멤버 업데이트
-    await Group.findByIdAndUpdate(
-      groupId,
-      {
-        $pull: { joinReqList: joinId },
-      },
-      { new: true },
-    );
-    console.log(userId);
+//     // 그룹에 현재 멤버 업데이트
+//     await Group.findByIdAndUpdate(
+//       groupId,
+//       {
+//         $pull: { joinReqList: joinId },
+//       },
+//       { new: true },
+//     );
+//     console.log(userId);
 
-    await User.findByIdAndUpdate(
-      userId,
-      {
-        $pull: { joinRequestGroup: groupId },
-      },
-      { new: true },
-    );
+//     await User.findByIdAndUpdate(
+//       userId,
+//       {
+//         $pull: { joinRequestGroup: groupId },
+//       },
+//       { new: true },
+//     );
 
-    const deletedJoin = await Join.deleteOne({ _id: joinId });
+//     const deletedJoin = await Join.deleteOne({ _id: joinId });
 
-    res.status(204).json();
-  } catch (err) {
-    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
-  }
-};
+//     res.status(204).json();
+//   } catch (err) {
+//     res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+//   }
+// };
 
 // 진행 그룹
 export const getOngoingGroupList = async (req: Request, res: Response) => {

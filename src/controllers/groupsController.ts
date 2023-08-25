@@ -1,23 +1,24 @@
 import { Request, Response, NextFunction } from 'express';
-import GroupsService from '../services/groups-service';
+import GroupService from '../services/groups-service';
 import { HttpError } from '../middlewares/error.handler';
 import { reqUserInfo } from '../types/users-types';
-import UsersService from '../services/users-service';
+import UserService from '../services/users-service';
 import mongoose from 'mongoose';
 import JoinService from '../services/join-service';
+import { throws } from 'assert';
 
 class GroupController {
-  private groupsService: GroupsService;
-  private usersService: UsersService;
+  private groupService: GroupService;
+  private userService: UserService;
   private joinService: JoinService;
 
   constructor(
-    groupsService: GroupsService,
-    usersService: UsersService,
+    groupService: GroupService,
+    userService: UserService,
     joinService: JoinService,
   ) {
-    this.groupsService = groupsService;
-    this.usersService = usersService;
+    this.groupService = groupService;
+    this.userService = userService;
     this.joinService = joinService;
   }
 
@@ -35,7 +36,7 @@ class GroupController {
     const sortByTime = req.query.sortByTime === 'false' ? false : true || true;
 
     try {
-      const getGroup = await this.groupsService.findAllGroup(
+      const getGroup = await this.groupService.findAllGroup(
         page,
         perPage,
         type,
@@ -57,7 +58,7 @@ class GroupController {
 
   getHotGroup = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const getGroup = await this.groupsService.findHotGroup();
+      const getGroup = await this.groupService.findHotGroup();
 
       if (getGroup === null) return next(new HttpError('NOT_FOUND_GROUP', 404));
 
@@ -71,7 +72,7 @@ class GroupController {
   getGroup = async (req: Request, res: Response, next: NextFunction) => {
     const { groupId } = req.params;
     try {
-      const getGroup = await this.groupsService.findOneGroup(groupId);
+      const getGroup = await this.groupService.findOneGroup(groupId);
 
       if (getGroup === null) return next(new HttpError('GROUP_NOT_FOUND', 404));
 
@@ -90,7 +91,7 @@ class GroupController {
       }
       const userTokenInfo = req.user as reqUserInfo;
       const userId: string = userTokenInfo.userId;
-      const user = await this.usersService.getMyInfo(userId);
+      const user = await this.userService.getMyInfo(userId);
 
       if (!user) {
         return next(new HttpError('USER_NOT_FOUND', 404));
@@ -109,7 +110,7 @@ class GroupController {
         imageUrl: req.file ? req.file.path : '',
       };
 
-      await this.groupsService.createGroup(userId, groupData);
+      await this.groupService.createGroup(userId, groupData);
 
       res.status(204).json();
     } catch (err) {
@@ -126,7 +127,7 @@ class GroupController {
     const { groupId } = req.params;
     const updatedData = { ...req.body };
     try {
-      const group = await this.groupsService.findOneGroup(groupId);
+      const group = await this.groupService.findOneGroup(groupId);
       if (!group)
         return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
 
@@ -137,13 +138,13 @@ class GroupController {
         return next(new HttpError('MAX_MEMBERS_EXCEEDED', 422));
       }
 
-      const updatedGroup = await this.groupsService.updateGroup(
+      const updatedGroup = await this.groupService.updateGroup(
         groupId,
         updatedData,
       );
       if (!updatedGroup)
         return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
-      res.json({ data: null, error: null });
+      res.status(204).json();
     } catch (err) {
       const error = new HttpError('서버 에러 발생', 500);
       return next(error);
@@ -153,18 +154,21 @@ class GroupController {
   deleteGroup = async (req: Request, res: Response, next: NextFunction) => {
     const { groupId } = req.params;
     try {
-      const group = await this.groupsService.deleteOnlyGroup(groupId);
+      const group = await this.groupService.deleteOnlyGroup(groupId);
       if (!group) return next(new HttpError('GROUP_NOT_FOUND', 404));
 
-      const deleteManyJoin = await this.joinService.deleteManyJoin(groupId);
-      const deletedGroup = await this.groupsService.deleteGroup(groupId);
-      res.json({ data: null, error: null });
+      const deleteManyJoin = await this.joinService.deleteManyByGroupId(
+        groupId,
+      );
+      const deletedGroup = await this.groupService.deleteGroup(groupId);
+      res.status(204).json();
     } catch (err) {
       const error = new HttpError('서버 에러 발생', 500);
       return next(error);
     }
   };
 
+  // 참여 요청 알림기능 추가 예정
   joinReqGroup = async (req: Request, res: Response, next: NextFunction) => {
     const { groupId } = req.params;
     const { userId, content } = req.body;
@@ -174,14 +178,153 @@ class GroupController {
         groupId,
         content,
       );
-      const currentGroup = await this.groupsService.findOneGroup(groupId);
+      const currentGroup = await this.groupService.findOneGroup(groupId);
       if (!currentGroup) return next(new HttpError('GROUP_NOT_FOUND', 404));
 
       const updateGroupData = { $push: { joinReqList: newJoin._id } };
-      await this.groupsService.updateGroup(groupId, updateGroupData);
+      await this.groupService.updateGroup(groupId, updateGroupData);
 
       const updateUserData = { $push: { joinRequestGroup: groupId } };
-      // 마저 수정하기
+      await this.userService.updateUser(userId, updateUserData);
+
+      res.status(204).json();
+    } catch (err) {
+      const error = new HttpError('서버 에러 발생', 500);
+      return next(error);
+    }
+  };
+
+  getGroupJoinList = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { groupId } = req.params;
+    const getData: object[] = [];
+    try {
+      const getGroupJoinList = await this.groupService.findOneGroup(groupId);
+      if (!getGroupJoinList) return next(new HttpError('GROUP_NOT_FOUND', 404));
+
+      const joinReqList = getGroupJoinList.joinReqList;
+      if (!joinReqList)
+        return res
+          .status(404)
+          .json({ data: null, error: 'JOINLIST_NOT_FOUND' });
+
+      const page = Number(req.query.page);
+      const perPage = Number(req.query.perPage);
+      const total = joinReqList.length;
+      const totalPage = Math.ceil(total / perPage);
+
+      let limit = 0;
+
+      for (let i = (page - 1) * perPage; i < total; i++) {
+        if (limit === perPage) break;
+
+        const joinReq = await this.joinService.findOneJoin(
+          joinReqList[i].toString(),
+        );
+        if (!joinReq)
+          return res.status(404).json({ data: null, error: 'JOIN_NOT_FOUND' });
+
+        const user = await this.userService.getUser(joinReq.userId.toString());
+        if (!user) continue;
+        const data = {
+          nickname: user.nickname,
+          content: joinReq.content,
+          email: user.email,
+          userImage: user.profileImage,
+          links: user.links,
+        };
+        getData.push(data);
+        limit++;
+      }
+
+      res.json({
+        data: { getData, totalPage, totalReqCount: total },
+        error: null,
+      });
+    } catch (err) {
+      const error = new HttpError('서버 에러 발생', 500);
+      return next(error);
+    }
+  };
+
+  // 그룹 신청 승인
+  approveGroupJoinRequest = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { joinId } = req.params;
+    try {
+      const reqJoin = await this.joinService.findOneJoin({ _id: joinId });
+      if (!reqJoin) return next(new HttpError(`JOIN_NOT_FOUND`, 404));
+
+      const { groupId, userId } = reqJoin;
+      const updateGroupData = {
+        $addToSet: { currentMembers: userId },
+        $pull: { joinReqList: joinId },
+      };
+      await this.groupService.updateGroup(groupId, updateGroupData);
+      const updateUserData = {
+        $addToSet: { ongoingGroup: groupId },
+        $pull: { joinRequestGroup: groupId },
+      };
+      await this.userService.updateUser(userId, updateUserData);
+
+      await this.joinService.deleteOne({ _id: joinId });
+
+      res.status(204).json();
+    } catch (err) {
+      const error = new HttpError('서버 에러 발생', 500);
+      return next(error);
+    }
+  };
+
+  // 그룹 신청 거절
+  rejectGroupJoinRequest = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { joinId } = req.params;
+    try {
+      const reqJoin = await this.joinService.findOneJoin({ _id: joinId });
+      if (!reqJoin) return next(new HttpError(`JOIN_NOT_FOUND`, 404));
+
+      const { groupId, userId } = reqJoin;
+      const updateGroupData = {
+        $pull: { joinReqList: joinId },
+      };
+      await this.groupService.updateGroup(groupId, updateGroupData);
+      const updateUserData = {
+        $pull: { joinRequestGroup: groupId },
+      };
+      await this.userService.updateUser(userId, updateUserData);
+
+      await this.joinService.deleteOne({ _id: joinId });
+
+      res.json({ data: null, error: null });
+    } catch (err) {
+      const error = new HttpError('서버 에러 발생', 500);
+      return next(error);
+    }
+  };
+
+  getOngoingGroupList = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      if (!req.user) {
+        return next(new HttpError('USER_NOT_FOUND', 404));
+      }
+      const userTokenInfo = req.user as reqUserInfo;
+      const userId: string = userTokenInfo.userId;
+      const foundUser = await this.userService.findOngoingGroupList(userId);
+      if (!foundUser) return next(new HttpError(`USER_NOT_FOUND`, 404));
 
       res.json({ data: null, error: null });
     } catch (err) {
