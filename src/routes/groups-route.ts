@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import {
-  getGroup,
   postGroup,
   patchGroup,
   deleteGroup,
@@ -8,7 +7,6 @@ import {
   getGroupJoinList,
   approveGroupJoinRequest,
   rejectGroupJoinRequest,
-  getHotGroups,
   getWishGroupList,
   getCreatedGroupList,
   joinGroupList,
@@ -23,20 +21,19 @@ import upload from '../middlewares/uploadFile.handler';
 import { handleDtoValidate } from '../middlewares/validateDto.handler';
 import isLoggedIn from '../middlewares/login-required.handler';
 import GroupController from '../controllers/groupsController';
-import Group from '../models/Group';
 import GroupsService from '../services/groups-service';
+import UsersService from '../services/users-service';
 
 const router = Router();
 const groupsService = new GroupsService();
-const groupsController = new GroupController(groupsService);
-
-// router.get('/', handleGroupVisit, getAllGroups);
+const usersService = new UsersService();
+const groupsController = new GroupController(groupsService, usersService);
 
 router.get('/', handleGroupVisit, groupsController.getAllGroup);
 
-router.get('/:groupId', handleGroupVisit, getGroup);
+router.get('/:groupId', handleGroupVisit, groupsController.getGroup);
 
-router.get('/main/hotGroup', handleGroupVisit, getHotGroups);
+router.get('/main/hotGroup', handleGroupVisit, groupsController.getHotGroup);
 
 // 찜한
 router.get('/myGroup/wishGroup', isLoggedIn, getWishGroupList);
@@ -54,7 +51,7 @@ router.post(
   upload.single('imageFile'),
   handleDtoValidate,
   isLoggedIn,
-  postGroup,
+  groupsController.postCreateGroup,
 );
 
 router.patch('/endGroup/:groupId', isLoggedIn, patchEndGroup);

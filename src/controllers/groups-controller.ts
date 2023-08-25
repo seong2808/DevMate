@@ -76,36 +76,36 @@ const TEMP_USER_ID = '64dc65801ded8e6a83b9d760';
 //   }
 // };
 
-// 상위 4개 그룹 조회
-export const getHotGroups = async (req: Request, res: Response) => {
-  try {
-    const getData = await Group.find().sort({ viewCount: -1 }).limit(4);
-    if (!getData)
-      return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
+// // 상위 4개 그룹 조회
+// export const getHotGroups = async (req: Request, res: Response) => {
+//   try {
+//     const getData = await Group.find().sort({ viewCount: -1 }).limit(4);
+//     if (!getData)
+//       return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
 
-    res.json({ data: { getData }, error: null });
-  } catch (err) {
-    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
-  }
-};
+//     res.json({ data: { getData }, error: null });
+//   } catch (err) {
+//     res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+//   }
+// };
 
-// 그룹 상세 조회(조회수 추가)
-export const getGroup = async (req: Request, res: Response) => {
-  try {
-    const { groupId } = req.params;
+// // 그룹 상세 조회(조회수 추가)
+// export const getGroup = async (req: Request, res: Response) => {
+//   try {
+//     const { groupId } = req.params;
 
-    const group = await Group.findById(groupId)
-      .populate('author', 'nickName')
-      .populate('currentMembers', 'nickName');
-    if (!group) {
-      return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
-    }
+//     const group = await Group.findById(groupId)
+//       .populate('author', 'nickName')
+//       .populate('currentMembers', 'nickName');
+//     if (!group) {
+//       return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
+//     }
 
-    res.json({ data: { group }, error: null });
-  } catch (err) {
-    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
-  }
-};
+//     res.json({ data: { group }, error: null });
+//   } catch (err) {
+//     res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+//   }
+// };
 
 // 그룹 생성
 export const postGroup = async (req: Request, res: Response) => {
@@ -142,8 +142,6 @@ export const postGroup = async (req: Request, res: Response) => {
       { createdGroup: createdGroup._id },
       { new: true },
     );
-
-    console.log(updatedData, updatedData?.createdGroup.prototype);
 
     res.json({ data: null, error: null });
   } catch (err) {
