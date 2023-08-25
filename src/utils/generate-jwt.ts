@@ -11,7 +11,9 @@ export type reqUser = {
 const generateJWT = (res: Response, user: reqUser) => {
   const payload = user;
   const token = jwt.sign(payload, process.env.JWT_SECRET || 'secret');
-  res.cookie('token', token).json({ message: '로그인 완료', error: null });
+  res
+    .cookie('token', token, { httpOnly: true, secure: true })
+    .json({ message: '로그인 완료', error: null });
 };
 
 export default generateJWT;
