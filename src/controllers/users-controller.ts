@@ -162,6 +162,17 @@ class UserController {
       return next(error);
     }
   };
+
+  // 로그아웃
+  logOut = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.clearCookie('token', { path: '/' });
+      res.json({ message: '로그아웃 성공' });
+    } catch (err) {
+      const error = new HttpError('서버 에러 발생', 500);
+      return next(error);
+    }
+  };
 }
 
 export default UserController;
