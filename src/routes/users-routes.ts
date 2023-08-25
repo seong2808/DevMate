@@ -15,7 +15,8 @@ import upload from '../middlewares/uploadFile.handler';
 import UserController from '../controllers/usersController';
 import UserService from '../services/users-service';
 
-const userController = new UserController();
+const usersService = new UserService();
+const userController = new UserController(usersService);
 
 const router = express.Router();
 

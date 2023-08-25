@@ -9,8 +9,8 @@ import UserService from '../services/users-service';
 class UserController {
   private userService: UserService;
 
-  constructor() {
-    this.userService = new UserService();
+  constructor(userService: UserService) {
+    this.userService = userService;
   }
   // 내 정보 조회
   getUserInfo = async (req: Request, res: Response, next: NextFunction) => {
@@ -24,7 +24,7 @@ class UserController {
 
     const userId: string = user.userId;
     try {
-      const foundUser = await UserService.getUserInfo(userId);
+      const foundUser = await this.userService.getUserInfo(userId);
 
       if (!foundUser) {
         return next(new HttpError('사용자를 찾을 수 없습니다.', 404));
