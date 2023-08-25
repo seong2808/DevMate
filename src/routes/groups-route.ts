@@ -1,13 +1,4 @@
 import { Router } from 'express';
-import {
-  getWishGroupList,
-  getCreatedGroupList,
-  joinGroupList,
-  patchWishlist,
-  deleteOneWishlist,
-  patchEndGroup,
-} from '../controllers/groups-controller';
-
 import { handleGroupVisit } from '../middlewares/group.handler';
 import upload from '../middlewares/uploadFile.handler';
 import { handleDtoValidate } from '../middlewares/validateDto.handler';
@@ -33,10 +24,14 @@ router.get('/:groupId', handleGroupVisit, groupController.getGroup);
 
 router.get('/main/hotGroup', handleGroupVisit, groupController.getHotGroup);
 
-// 찜한
-router.get('/myGroup/wishGroup', isLoggedIn, getWishGroupList);
+// 관심 그룹
+router.get('/myGroup/wishGroup', isLoggedIn, groupController.getWishGroupList);
 // 생성한
-router.get('/myGroup/createdGroup', isLoggedIn, getCreatedGroupList);
+router.get(
+  '/myGroup/createdGroup',
+  isLoggedIn,
+  groupController.getCreatedGroupList,
+);
 // 현재 진행
 router.get(
   '/myGroup/ongoingGroup',
@@ -44,7 +39,11 @@ router.get(
   groupController.getOngoingGroupList,
 );
 // 지원한
-router.get('/myGroup/joinRequestGroup', isLoggedIn, joinGroupList);
+router.get(
+  '/myGroup/joinRequestGroup',
+  isLoggedIn,
+  groupController.getJoinGroupList,
+);
 // 그룹 참여 신청 리스트 ( 그룹 입장 )
 router.get('/joinRequests/:groupId', groupController.getGroupJoinList);
 
@@ -56,7 +55,7 @@ router.post(
   groupController.postCreateGroup,
 );
 
-router.patch('/endGroup/:groupId', isLoggedIn, patchEndGroup);
+router.patch('/endGroup/:groupId', isLoggedIn, groupController.patchEndGroup);
 
 // 수정
 router.patch(
@@ -81,8 +80,12 @@ router.patch(
   groupController.rejectGroupJoinRequest,
 );
 
-router.patch('/subscribe/:groupId', isLoggedIn, patchWishlist);
+router.patch('/subscribe/:groupId', isLoggedIn, groupController.patchWishlist);
 
-router.patch('/unsubscribe/:groupId', isLoggedIn, deleteOneWishlist);
+router.patch(
+  '/unsubscribe/:groupId',
+  isLoggedIn,
+  groupController.deleteOneWishlist,
+);
 
 export default router;

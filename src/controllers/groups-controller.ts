@@ -375,139 +375,139 @@ const TEMP_USER_ID = '64dc65801ded8e6a83b9d760';
 //   }
 // };
 
-// 진행 그룹
-export const getOngoingGroupList = async (req: Request, res: Response) => {
-  try {
-    // 토큰에서 user 고유 Id 가져오는 코드
-    if (!req.user) {
-      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
-    }
-    const userTokenInfo = req.user as reqUserInfo;
-    const userId: string = userTokenInfo.userId;
+// // 진행 그룹
+// export const getOngoingGroupList = async (req: Request, res: Response) => {
+//   try {
+//     // 토큰에서 user 고유 Id 가져오는 코드
+//     if (!req.user) {
+//       return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+//     }
+//     const userTokenInfo = req.user as reqUserInfo;
+//     const userId: string = userTokenInfo.userId;
 
-    const foundUser = await User.findById(userId).populate('groups');
-    if (!foundUser)
-      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND!!' });
-    const getData = foundUser.ongoingGroup;
-    const fillteredData = getData.filter((data: any) => data.status !== '종료');
+//     const foundUser = await User.findById(userId).populate('groups');
+//     if (!foundUser)
+//       return res.status(404).json({ data: null, error: 'USER_NOT_FOUND!!' });
+//     const getData = foundUser.ongoingGroup;
+//     const fillteredData = getData.filter((data: any) => data.status !== '종료');
 
-    res.status(200).json({ data: { fillteredData }, error: null });
-  } catch (err) {
-    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
-  }
-};
+//     res.status(200).json({ data: { fillteredData }, error: null });
+//   } catch (err) {
+//     res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+//   }
+// };
 
-// 관심 그룹
-export const getWishGroupList = async (req: Request, res: Response) => {
-  try {
-    // 토큰에서 user 고유 Id 가져오는 코드
-    if (!req.user) {
-      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
-    }
-    const userTokenInfo = req.user as reqUserInfo;
-    const userId: string = userTokenInfo.userId;
+// // 관심 그룹
+// export const getWishGroupList = async (req: Request, res: Response) => {
+//   try {
+//     // 토큰에서 user 고유 Id 가져오는 코드
+//     if (!req.user) {
+//       return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+//     }
+//     const userTokenInfo = req.user as reqUserInfo;
+//     const userId: string = userTokenInfo.userId;
 
-    const foundUser = await User.findById(userId).populate('wishList');
-    if (!foundUser)
-      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND!!' });
+//     const foundUser = await User.findById(userId).populate('wishList');
+//     if (!foundUser)
+//       return res.status(404).json({ data: null, error: 'USER_NOT_FOUND!!' });
 
-    const wishList = foundUser.wishList;
-    res.status(200).json({ data: { wishList }, error: null });
-  } catch (err) {
-    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
-  }
-};
+//     const wishList = foundUser.wishList;
+//     res.status(200).json({ data: { wishList }, error: null });
+//   } catch (err) {
+//     res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+//   }
+// };
 
-// 생성 그룹
-export const getCreatedGroupList = async (req: Request, res: Response) => {
-  try {
-    // 토큰에서 user 고유 Id 가져오는 코드
-    if (!req.user) {
-      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND!!' });
-    }
-    const userTokenInfo = req.user as reqUserInfo;
-    const userId: string = userTokenInfo.userId;
+// // 생성 그룹
+// export const getCreatedGroupList = async (req: Request, res: Response) => {
+//   try {
+//     // 토큰에서 user 고유 Id 가져오는 코드
+//     if (!req.user) {
+//       return res.status(404).json({ data: null, error: 'USER_NOT_FOUND!!' });
+//     }
+//     const userTokenInfo = req.user as reqUserInfo;
+//     const userId: string = userTokenInfo.userId;
 
-    const foundUser = await User.findById(userId).populate('createdGroup');
-    if (!foundUser)
-      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+//     const foundUser = await User.findById(userId).populate('createdGroup');
+//     if (!foundUser)
+//       return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
 
-    const createdGroup = foundUser.createdGroup;
+//     const createdGroup = foundUser.createdGroup;
 
-    res.status(200).json({ data: { createdGroup }, error: null });
-  } catch (err) {
-    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
-  }
-};
+//     res.status(200).json({ data: { createdGroup }, error: null });
+//   } catch (err) {
+//     res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+//   }
+// };
 
 // 지원 그룹
-export const joinGroupList = async (req: Request, res: Response) => {
-  try {
-    // 토큰에서 user 고유 Id 가져오는 코드
-    if (!req.user) {
-      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
-    }
-    const userTokenInfo = req.user as reqUserInfo;
-    const userId: string = userTokenInfo.userId;
+// export const joinGroupList = async (req: Request, res: Response) => {
+//   try {
+//     // 토큰에서 user 고유 Id 가져오는 코드
+//     if (!req.user) {
+//       return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+//     }
+//     const userTokenInfo = req.user as reqUserInfo;
+//     const userId: string = userTokenInfo.userId;
 
-    const foundUser = await User.findById(userId).populate('joinRequestGroup');
-    if (!foundUser)
-      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
-    const joinRequestGroup = foundUser.joinRequestGroup;
+//     const foundUser = await User.findById(userId).populate('joinRequestGroup');
+//     if (!foundUser)
+//       return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+//     const joinRequestGroup = foundUser.joinRequestGroup;
 
-    res.status(200).json({ data: { joinRequestGroup }, error: null });
-  } catch (err) {
-    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
-  }
-};
+//     res.status(200).json({ data: { joinRequestGroup }, error: null });
+//   } catch (err) {
+//     res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+//   }
+// };
 
-// 관심 그룹 등록
-export const patchWishlist = async (req: Request, res: Response) => {
-  try {
-    // 토큰에서 user 고유 Id 가져오는 코드
-    if (!req.user) {
-      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
-    }
-    const userTokenInfo = req.user as reqUserInfo;
-    const userId: string = userTokenInfo.userId;
-    const { groupId } = req.params;
+// // 관심 그룹 등록
+// export const patchWishlist = async (req: Request, res: Response) => {
+//   try {
+//     // 토큰에서 user 고유 Id 가져오는 코드
+//     if (!req.user) {
+//       return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+//     }
+//     const userTokenInfo = req.user as reqUserInfo;
+//     const userId: string = userTokenInfo.userId;
+//     const { groupId } = req.params;
 
-    // 유저에 속해 있는 그룹 업데이트
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { $addToSet: { wishList: groupId } },
-      { new: true },
-    );
+//     // 유저에 속해 있는 그룹 업데이트
+//     const updatedUser = await User.findByIdAndUpdate(
+//       userId,
+//       { $addToSet: { wishList: groupId } },
+//       { new: true },
+//     );
 
-    res.status(200).json({ data: null, error: null });
-  } catch (err) {
-    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
-  }
-};
+//     res.status(200).json({ data: null, error: null });
+//   } catch (err) {
+//     res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+//   }
+// };
 
-// 관심 그룹 해제
-export const deleteOneWishlist = async (req: Request, res: Response) => {
-  try {
-    // 토큰에서 user 고유 Id 가져오는 코드
-    if (!req.user) {
-      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
-    }
-    const userTokenInfo = req.user as reqUserInfo;
-    const userId: string = userTokenInfo.userId;
-    const { groupId } = req.params;
+// // 관심 그룹 해제
+// export const deleteOneWishlist = async (req: Request, res: Response) => {
+//   try {
+//     // 토큰에서 user 고유 Id 가져오는 코드
+//     if (!req.user) {
+//       return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+//     }
+//     const userTokenInfo = req.user as reqUserInfo;
+//     const userId: string = userTokenInfo.userId;
+//     const { groupId } = req.params;
 
-    // 유저에 속해 있는 그룹 업데이트
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { $pull: { wishList: groupId } },
-      { new: true },
-    );
+//     // 유저에 속해 있는 그룹 업데이트
+//     const updatedUser = await User.findByIdAndUpdate(
+//       userId,
+//       { $pull: { wishList: groupId } },
+//       { new: true },
+//     );
 
-    res.status(200).json({ data: null, error: null });
-  } catch (err) {
-    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
-  }
-};
+//     res.status(200).json({ data: null, error: null });
+//   } catch (err) {
+//     res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+//   }
+// };
 
 // 그룹 종료
 export const patchEndGroup = async (req: Request, res: Response) => {

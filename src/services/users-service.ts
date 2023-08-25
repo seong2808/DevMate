@@ -40,7 +40,22 @@ class UserService {
   }
 
   async findOngoingGroupList(userId: string) {
-    const foundUser = await User.findById(userId).populate('groups');
+    const foundUser = await User.findById(userId).populate('ongoingGroup');
+    return foundUser;
+  }
+
+  async findWishGroupList(userId: string) {
+    const foundUser = await User.findById(userId).populate('wishList');
+    return foundUser;
+  }
+
+  async CreatedGroupList(userId: string) {
+    const foundUser = await User.findById(userId).populate('createdGroup');
+    return foundUser;
+  }
+
+  async JoinGroupList(userId: string) {
+    const foundUser = await User.findById(userId).populate('joinRequestGroup');
     return foundUser;
   }
 }
