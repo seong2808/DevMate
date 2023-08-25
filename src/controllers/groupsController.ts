@@ -305,13 +305,14 @@ class GroupController {
 
       await this.joinService.deleteOne({ _id: joinId });
 
-      res.json({ data: null, error: null });
+      res.status(204).json();
     } catch (err) {
       const error = new HttpError('서버 에러 발생', 500);
       return next(error);
     }
   };
 
+  // 진행 그룹
   getOngoingGroupList = async (
     req: Request,
     res: Response,
@@ -325,8 +326,150 @@ class GroupController {
       const userId: string = userTokenInfo.userId;
       const foundUser = await this.userService.findOngoingGroupList(userId);
       if (!foundUser) return next(new HttpError(`USER_NOT_FOUND`, 404));
+      const getData = foundUser.ongoingGroup;
+      const fillteredData = getData.filter(
+        (data: any) => data.status !== '종료',
+      );
 
-      res.json({ data: null, error: null });
+      res.status(200).json({ data: fillteredData, error: null });
+    } catch (err) {
+      const error = new HttpError('서버 에러 발생', 500);
+      return next(error);
+    }
+  };
+
+  // 관심 그룹
+  getWishGroupList = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      if (!req.user) {
+        return next(new HttpError('USER_NOT_FOUND', 404));
+      }
+      const userTokenInfo = req.user as reqUserInfo;
+      const userId: string = userTokenInfo.userId;
+      const foundUser = await this.userService.findWishGroupList(userId);
+      if (!foundUser) return next(new HttpError(`USER_NOT_FOUND`, 404));
+
+      const wishList = foundUser.wishList;
+      res.json({ data: wishList, error: null });
+    } catch (err) {
+      const error = new HttpError('서버 에러 발생', 500);
+      return next(error);
+    }
+  };
+
+  // 생성 그룹
+  getCreatedGroupList = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      if (!req.user) {
+        return next(new HttpError('USER_NOT_FOUND', 404));
+      }
+      const userTokenInfo = req.user as reqUserInfo;
+      const userId: string = userTokenInfo.userId;
+      const foundUser = await this.userService.CreatedGroupList(userId);
+      if (!foundUser) return next(new HttpError(`USER_NOT_FOUND`, 404));
+
+      const createdGroup = foundUser.createdGroup;
+      res.json({ data: createdGroup, error: null });
+    } catch (err) {
+      const error = new HttpError('서버 에러 발생', 500);
+      return next(error);
+    }
+  };
+
+  // 지원 그룹
+  getJoinGroupList = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      if (!req.user) {
+        return next(new HttpError('USER_NOT_FOUND', 404));
+      }
+      const userTokenInfo = req.user as reqUserInfo;
+      const userId: string = userTokenInfo.userId;
+      const foundUser = await this.userService.JoinGroupList(userId);
+      if (!foundUser) return next(new HttpError(`USER_NOT_FOUND`, 404));
+
+      const joinRequestGroup = foundUser.joinRequestGroup;
+      res.json({ data: joinRequestGroup, error: null });
+    } catch (err) {
+      const error = new HttpError('서버 에러 발생', 500);
+      return next(error);
+    }
+  };
+
+  // 관심 그룹 등록
+  patchWishlist = async (req: Request, res: Response, next: NextFunction) => {
+    const { groupId } = req.params;
+    try {
+      if (!req.user) {
+        return next(new HttpError('USER_NOT_FOUND', 404));
+      }
+      const userTokenInfo = req.user as reqUserInfo;
+      const userId: string = userTokenInfo.userId;
+
+      const updatedUserData = { $addToSet: { wishList: groupId } };
+      await this.userService.updateUser(userId, updatedUserData);
+
+      res.status(204).json();
+    } catch (err) {
+      const error = new HttpError('서버 에러 발생', 500);
+      return next(error);
+    }
+  };
+
+  // 관심 그룹 해제
+  deleteOneWishlist = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { groupId } = req.params;
+    try {
+      if (!req.user) {
+        return next(new HttpError('USER_NOT_FOUND', 404));
+      }
+      const userTokenInfo = req.user as reqUserInfo;
+      const userId: string = userTokenInfo.userId;
+
+      const updatedUserData = { $pull: { wishList: groupId } };
+      await this.userService.updateUser(userId, updatedUserData);
+
+      res.status(204).json();
+    } catch (err) {
+      const error = new HttpError('서버 에러 발생', 500);
+      return next(error);
+    }
+  };
+
+  // 그룹 종료
+  patchEndGroup = async (req: Request, res: Response, next: NextFunction) => {
+    const { groupId } = req.params;
+    try {
+      if (!req.user) {
+        return next(new HttpError('USER_NOT_FOUND', 404));
+      }
+      const userTokenInfo = req.user as reqUserInfo;
+      const userId: string = userTokenInfo.userId;
+
+      const updatedGroupData = { status: '종료' };
+      await this.groupService.updateGroup(userId, updatedGroupData);
+
+      const updatedUserData = { createdGroup: null };
+      await this.userService.updateUser(userId, updatedUserData);
+
+      await this.groupService.updateMany(groupId);
+
+      res.status(204).json();
     } catch (err) {
       const error = new HttpError('서버 에러 발생', 500);
       return next(error);

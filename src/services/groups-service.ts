@@ -109,8 +109,16 @@ class GroupService {
     return group;
   }
 
-  async oqweqweGroup() {
-    return {};
+  async updateMany(groupId: string) {
+    await User.updateMany(
+      { ongoingGroup: groupId },
+      {
+        $pull: { ongoingGroup: groupId },
+        $push: { endGroup: groupId },
+      },
+      { new: true },
+    );
+    return;
   }
 }
 
