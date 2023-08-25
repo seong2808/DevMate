@@ -4,7 +4,7 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
-import groupRoutes from './routes/groupsRoutes';
+import groupRoute from './routes/groups-route';
 import bodyParser from 'body-parser';
 
 import usersRoutes from './routes/users-routes';
@@ -25,7 +25,7 @@ app.use(bodyParser.json());
 app.use(passport.initialize());
 app.use(getToken);
 
-app.use('/api/groups', groupRoutes);
+app.use('/api/groups', groupRoute);
 
 app.use('/api/users', usersRoutes);
 

@@ -10,71 +10,71 @@ import mongoose from 'mongoose';
 
 const TEMP_USER_ID = '64dc65801ded8e6a83b9d760';
 
-// 전체 그룹 조회
-export const getAllGroups = async (req: Request, res: Response) => {
-  try {
-    const type = req.query.type;
-    const location = req.query.location;
-    const sortByTime = req.query.sortByTime === 'false' ? false : true || true;
+// // 전체 그룹 조회
+// export const getAllGroups = async (req: Request, res: Response) => {
+//   try {
+//     const type = req.query.type;
+//     const location = req.query.location;
+//     const sortByTime = req.query.sortByTime === 'false' ? false : true || true;
 
-    const page = Number(req.query.page);
-    const perPage = Number(req.query.perPage) || 8;
+//     const page = Number(req.query.page);
+//     const perPage = Number(req.query.perPage) || 8;
 
-    const position = req.query.position as string;
-    const newPosition = position?.split(',');
+//     const position = req.query.position as string;
+//     const newPosition = position?.split(',');
 
-    const skill = req.query.skills as string;
-    const newSkill = skill?.split(',');
+//     const skill = req.query.skills as string;
+//     const newSkill = skill?.split(',');
 
-    const sortCriteria: SortCriteria = {};
-    sortByTime ? (sortCriteria.createdAt = -1) : (sortCriteria.viewCount = -1);
+//     const sortCriteria: SortCriteria = {};
+//     sortByTime ? (sortCriteria.createdAt = -1) : (sortCriteria.viewCount = -1);
 
-    const groups = await Group.find(
-      newPosition || location || newSkill || type
-        ? {
-            $and: [
-              newPosition ? { position: { $in: newPosition } } : {},
-              location ? { location: location } : {},
-              newSkill ? { skills: { $in: newSkill } } : {},
-              type ? { type: type } : {},
-              { status: '모집중' },
-            ],
-          }
-        : {
-            status: '모집중',
-          },
-    )
-      .sort(sortByTime ? { createdAt: -1 } : { viewCount: -1 })
-      .skip(perPage * (page - 1))
-      .limit(perPage);
+//     const groups = await Group.find(
+//       newPosition || location || newSkill || type
+//         ? {
+//             $and: [
+//               newPosition ? { position: { $in: newPosition } } : {},
+//               location ? { location: location } : {},
+//               newSkill ? { skills: { $in: newSkill } } : {},
+//               type ? { type: type } : {},
+//               { status: '모집중' },
+//             ],
+//           }
+//         : {
+//             status: '모집중',
+//           },
+//     )
+//       .sort(sortByTime ? { createdAt: -1 } : { viewCount: -1 })
+//       .skip(perPage * (page - 1))
+//       .limit(perPage);
 
-    const data = await Group.find(
-      newPosition || location || newSkill || type
-        ? {
-            $and: [
-              newPosition ? { position: { $in: newPosition } } : {},
-              location ? { location: location } : {},
-              newSkill ? { skills: { $in: newSkill } } : {},
-              type ? { type: type } : {},
-              { status: '모집중' },
-            ],
-          }
-        : { status: '모집중' },
-    );
-    const total = data.length;
-    const totalPage = Math.ceil(total / perPage);
+//     const data = await Group.find(
+//       newPosition || location || newSkill || type
+//         ? {
+//             $and: [
+//               newPosition ? { position: { $in: newPosition } } : {},
+//               location ? { location: location } : {},
+//               newSkill ? { skills: { $in: newSkill } } : {},
+//               type ? { type: type } : {},
+//               { status: '모집중' },
+//             ],
+//           }
+//         : { status: '모집중' },
+//     );
+//     const total = data.length;
+//     const totalPage = Math.ceil(total / perPage);
 
-    res.json({
-      data: {
-        groups,
-        totalPage,
-      },
-      error: null,
-    });
-  } catch (err) {
-    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
-  }
-};
+//     res.json({
+//       data: {
+//         groups,
+//         totalPage,
+//       },
+//       error: null,
+//     });
+//   } catch (err) {
+//     res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+//   }
+// };
 
 // 상위 4개 그룹 조회
 export const getHotGroups = async (req: Request, res: Response) => {
