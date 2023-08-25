@@ -12,12 +12,16 @@ import isLoggedIn from '../middlewares/login-required.handler';
 import validatePassword from '../middlewares/validate-password.handler';
 import passport from 'passport';
 import upload from '../middlewares/uploadFile.handler';
+import UserController from '../controllers/usersController';
+import UserService from '../services/users-service';
+
+const userController = new UserController();
 
 const router = express.Router();
 
 router.get('/', getAllUsers);
 
-router.get('/myProfile', isLoggedIn, getMyProfile);
+router.get('/myProfile', isLoggedIn, userController.getUserInfo);
 
 router.get('/profile/:userId', getUserInfo);
 
