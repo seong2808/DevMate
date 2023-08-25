@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import Group from '../models/Group';
 import User from '../models/User';
 import { SortCriteria } from '../types/groups-types';
@@ -79,6 +78,31 @@ class GroupsService {
       { new: true },
     );
     return;
+  }
+
+  async updateGroup(groupId: string, updatedData: object) {
+    const updatedGroup = await Group.findByIdAndUpdate(groupId, updatedData, {
+      new: true,
+    });
+    return updatedGroup;
+  }
+
+  async deleteGroup(groupId: string) {
+    await User.updateMany(
+      { ongoingGroup: groupId },
+      { $pull: { ongoingGroup: groupId } },
+    );
+    await User.updateMany(
+      { endGroup: groupId },
+      { $pull: { endGroup: groupId } },
+    );
+    await User.updateMany({ createdGroup: groupId }, { createdGroup: null });
+    return;
+  }
+
+  async deleteOnlyGroup(groupId: string) {
+    const group = await Group.findByIdAndRemove(groupId);
+    return group;
   }
 
   async oqweqweGroup() {

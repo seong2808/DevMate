@@ -1,8 +1,5 @@
 import { Router } from 'express';
 import {
-  postGroup,
-  patchGroup,
-  deleteGroup,
   joinReqGroup,
   getGroupJoinList,
   approveGroupJoinRequest,
@@ -23,11 +20,17 @@ import isLoggedIn from '../middlewares/login-required.handler';
 import GroupController from '../controllers/groupsController';
 import GroupsService from '../services/groups-service';
 import UsersService from '../services/users-service';
+import JoinService from '../services/join-service';
 
 const router = Router();
 const groupsService = new GroupsService();
 const usersService = new UsersService();
-const groupsController = new GroupController(groupsService, usersService);
+const joinService = new JoinService();
+const groupsController = new GroupController(
+  groupsService,
+  usersService,
+  joinService,
+);
 
 router.get('/', handleGroupVisit, groupsController.getAllGroup);
 
@@ -56,11 +59,18 @@ router.post(
 
 router.patch('/endGroup/:groupId', isLoggedIn, patchEndGroup);
 
-router.patch('/:groupId', upload.single('imageFile'), patchGroup);
+// 수정
+router.patch(
+  '/:groupId',
+  upload.single('imageFile'),
+  groupsController.patchUpdateGroup,
+);
 
-router.delete('/:groupId', deleteGroup);
+// 삭제
+router.delete('/:groupId', groupsController.deleteGroup);
 
-router.post('/joinRequests/:groupId', joinReqGroup);
+// 그룹 참여 요청
+router.post('/joinRequests/:groupId', groupsController.joinReqGroup);
 
 router.patch('/approveJoinRequest/:joinId', approveGroupJoinRequest);
 

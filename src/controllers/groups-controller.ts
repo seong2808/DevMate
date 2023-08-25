@@ -107,107 +107,107 @@ const TEMP_USER_ID = '64dc65801ded8e6a83b9d760';
 //   }
 // };
 
-// 그룹 생성
-export const postGroup = async (req: Request, res: Response) => {
-  try {
-    const createGruopDto = req.body;
+// // 그룹 생성
+// export const postGroup = async (req: Request, res: Response) => {
+//   try {
+//     const createGruopDto = req.body;
 
-    if (!req.user) {
-      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
-    }
-    const userTokenInfo = req.user as reqUserInfo;
-    const userId: string = userTokenInfo.userId;
+//     if (!req.user) {
+//       return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+//     }
+//     const userTokenInfo = req.user as reqUserInfo;
+//     const userId: string = userTokenInfo.userId;
 
-    const user = await User.findById(userId);
-    if (!user)
-      return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
-    const userCreatedGroup = user.createdGroup;
-    if (userCreatedGroup || mongoose.isValidObjectId(userCreatedGroup))
-      return res.status(400).json({ data: null, error: 'GROUP_EXISTS' });
+//     const user = await User.findById(userId);
+//     if (!user)
+//       return res.status(404).json({ data: null, error: 'USER_NOT_FOUND' });
+//     const userCreatedGroup = user.createdGroup;
+//     if (userCreatedGroup || mongoose.isValidObjectId(userCreatedGroup))
+//       return res.status(400).json({ data: null, error: 'GROUP_EXISTS' });
 
-    const groupData = {
-      ...createGruopDto,
-      position: JSON.parse(req.body.position),
-      skills: JSON.parse(req.body.skills),
-      author: userId,
-      currentMembers: [userId],
-      imageUrl: req.file ? req.file.path : '',
-    };
+//     const groupData = {
+//       ...createGruopDto,
+//       position: JSON.parse(req.body.position),
+//       skills: JSON.parse(req.body.skills),
+//       author: userId,
+//       currentMembers: [userId],
+//       imageUrl: req.file ? req.file.path : '',
+//     };
 
-    const newGroup = new Group(groupData);
-    const createdGroup = await newGroup.save();
+//     const newGroup = new Group(groupData);
+//     const createdGroup = await newGroup.save();
 
-    const updatedData = await User.findByIdAndUpdate(
-      userId,
-      { createdGroup: createdGroup._id },
-      { new: true },
-    );
+//     const updatedData = await User.findByIdAndUpdate(
+//       userId,
+//       { createdGroup: createdGroup._id },
+//       { new: true },
+//     );
 
-    res.json({ data: null, error: null });
-  } catch (err) {
-    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
-  }
-};
+//     res.json({ data: null, error: null });
+//   } catch (err) {
+//     res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+//   }
+// };
 
-//그룹 수정
-export const patchGroup = async (req: Request, res: Response) => {
-  try {
-    const { groupId } = req.params;
-    const updatedData = { ...req.body };
-    const currentGroup = await Group.findById(groupId);
-    if (!currentGroup)
-      return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
+// //그룹 수정
+// export const patchGroup = async (req: Request, res: Response) => {
+//   try {
+//     const { groupId } = req.params;
+//     const updatedData = { ...req.body };
+//     const currentGroup = await Group.findById(groupId);
+//     if (!currentGroup)
+//       return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
 
-    if (
-      updatedData.maxMembers &&
-      updatedData.maxMembers < currentGroup.currentMembers.length
-    ) {
-      return res
-        .status(422)
-        .json({ data: null, error: 'MAX_MEMBERS_EXCEEDED' });
-    }
+//     if (
+//       updatedData.maxMembers &&
+//       updatedData.maxMembers < currentGroup.currentMembers.length
+//     ) {
+//       return res
+//         .status(422)
+//         .json({ data: null, error: 'MAX_MEMBERS_EXCEEDED' });
+//     }
 
-    await Group.findByIdAndUpdate(groupId, updatedData, {
-      new: true,
-    });
-    return res.json({ data: null, error: null });
-  } catch (err) {
-    return res.status(500).json({ data: null, error: `요청 실패 ${err}` });
-  }
-};
+//     await Group.findByIdAndUpdate(groupId, updatedData, {
+//       new: true,
+//     });
+//     return res.json({ data: null, error: null });
+//   } catch (err) {
+//     return res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+//   }
+// };
 
 // 그룹 삭제
-export const deleteGroup = async (req: Request, res: Response) => {
-  try {
-    const { groupId } = req.params;
+// export const deleteGroup = async (req: Request, res: Response) => {
+//   try {
+//     const { groupId } = req.params;
 
-    const group = await Group.findByIdAndRemove(groupId);
-    // if (!group) {
-    //   return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
-    // }
+//     const group = await Group.findByIdAndRemove(groupId);
+//     // if (!group) {
+//     //   return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
+//     // }
 
-    await Join.deleteMany({ groupId });
+//     await Join.deleteMany({ groupId });
 
-    await User.updateMany(
-      { ongoingGroup: groupId },
-      { $pull: { ongoingGroup: groupId } },
-    );
+//     await User.updateMany(
+//       { ongoingGroup: groupId },
+//       { $pull: { ongoingGroup: groupId } },
+//     );
 
-    await User.updateMany(
-      { endGroup: groupId },
-      { $pull: { endGroup: groupId } },
-    );
+//     await User.updateMany(
+//       { endGroup: groupId },
+//       { $pull: { endGroup: groupId } },
+//     );
 
-    await User.updateMany(
-      { createdGroup: groupId },
-      { $pull: { createdGroup: groupId } },
-    );
+//     await User.updateMany(
+//       { createdGroup: groupId },
+//       { $pull: { createdGroup: groupId } },
+//     );
 
-    res.json({ data: null, error: null });
-  } catch (err) {
-    res.status(500).json({ data: null, error: `요청 실패 ${err}` });
-  }
-};
+//     res.json({ data: null, error: null });
+//   } catch (err) {
+//     res.status(500).json({ data: null, error: `요청 실패 ${err}` });
+//   }
+// };
 
 // 그룹 참여 요청
 export const joinReqGroup = async (req: Request, res: Response) => {
