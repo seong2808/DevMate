@@ -15,26 +15,32 @@ import upload from '../middlewares/uploadFile.handler';
 import UserController from '../controllers/usersController';
 import UserService from '../services/users-service';
 
-const userController = new UserController();
+const userService = new UserService();
+const userController = new UserController(userService);
 
 const router = express.Router();
 
-router.get('/', getAllUsers);
+router.get('/', userController.getAllUsers);
 
-router.get('/myProfile', isLoggedIn, userController.getUserInfo);
+router.get('/myProfile', isLoggedIn, userController.getMyInfo);
 
 router.get('/profile/:userId', getUserInfo);
 
-router.post('/signup', signup);
+router.post('/signup', userController.signUp);
 
-router.patch('/profile', isLoggedIn, upload.single('imageFile'), updateUsers);
+router.patch(
+  '/profile',
+  isLoggedIn,
+  upload.single('imageFile'),
+  userController.updateUser,
+);
 
-router.delete('/', isLoggedIn, validatePassword, deleteUsers);
+router.delete('/', isLoggedIn, validatePassword, userController.deleteUser);
 
 router.post(
   '/login',
   passport.authenticate('local', { session: false }),
-  login,
+  userController.signIn,
 );
 
 export default router;
