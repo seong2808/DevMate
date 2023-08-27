@@ -14,7 +14,7 @@ class UserService {
     return foundUser;
   }
   //
-  async getUser(userId: string) {
+  async getUser(userId: string | typeof mongoose.Schema.Types.ObjectId) {
     const foundUser = await User.findById(userId, '-password');
     return foundUser;
   }
