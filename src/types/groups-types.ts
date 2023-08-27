@@ -15,7 +15,7 @@ export interface IGroup {
   maxMembers: number;
   viewCount?: number;
   wishCount?: number;
-  status?: GroupStatus;
+  status: boolean;
   joinReqList: (typeof Schema.Types.ObjectId)[];
 }
 
@@ -137,5 +137,3 @@ export type Position =
   | '전체';
 
 export type GroupType = 'study' | 'project';
-
-export type GroupStatus = '모집중' | '진행중' | '종료';

@@ -1,5 +1,12 @@
 import mongoose, { Schema, Types } from 'mongoose';
-import { IGroup } from '../types/groups-types';
+import {
+  IGroup,
+  Position,
+  GroupType,
+  Location,
+  GroupStatus,
+  Skill,
+} from '../types/groups-types';
 
 const groupSchema = new Schema<IGroup>(
   {
@@ -184,9 +191,9 @@ const groupSchema = new Schema<IGroup>(
     },
 
     status: {
-      type: Boolean,
-      required: true,
-      default: true,
+      type: String,
+      enum: ['모집중', '진행중', '종료'],
+      default: '모집중',
     },
 
     // 신청 스키마 _id List
