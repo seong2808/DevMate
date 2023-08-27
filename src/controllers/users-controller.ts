@@ -124,12 +124,19 @@ class UserController {
     const userTokenInfo = req.user as reqUserInfo;
     const userId: string = userTokenInfo.userId;
 
-    const updates: IUser = req.body;
+    const { body } = req;
+    // console.log({ ...body, links: JSON.parse(body.links) });
+    const updates: IUser = {
+      ...body,
+      links: JSON.parse(body.links),
+      skills: JSON.parse(body.skills),
+    };
     if (updates.password) {
       return next(
         new HttpError('요청에서 허용되지 않는 정보를 포함하고 있습니다.', 400),
       );
     }
+
     updates.profileImage = req.file ? req.file.path : ''; // 이미지 파일 처리
 
     try {

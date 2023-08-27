@@ -553,6 +553,53 @@ class GroupController {
     }
   };
 
+  // 지원 취소 (User 입장)
+  cancelJoinReq = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userTokenInfo = req.user as reqUserInfo;
+      const userId: string = userTokenInfo.userId;
+      const { groupId } = req.params;
+
+      const condition = {
+        $and: [{ userId: userId }, { groupId: groupId }],
+      };
+
+      const foundJoin = await this.joinService.findOneJoinByCondition(
+        condition,
+      );
+
+      const updateGroupData = { $pull: { joinReqList: foundJoin?._id } };
+      await this.groupService.updateGroup(groupId, updateGroupData);
+
+      const updateUserData = { $pull: { joinRequestGroup: groupId } };
+      await this.userService.updateUser(userId, updateUserData);
+
+      await this.joinService.deleteOne(foundJoin?._id);
+
+      res.json({ data: null, error: null });
+    } catch (err) {
+      const error = new HttpError('서버 에러 발생', 500);
+      return next(error);
+    }
+  };
+
+  // 지원 전체 취소 (임시)
+  cancelAllJoinReq = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const userTokenInfo = req.user as reqUserInfo;
+      const userId: string = userTokenInfo.userId;
+
+      res.json({ data: null, error: null });
+    } catch (err) {
+      const error = new HttpError('서버 에러 발생', 500);
+      return next(error);
+    }
+  };
+
   deleteAllJoinReq2List = async (
     req: Request,
     res: Response,

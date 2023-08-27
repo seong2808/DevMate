@@ -28,6 +28,11 @@ class JoinService {
     return deletedJoin;
   }
 
+  async findOneJoinByCondition(condition: object) {
+    const foundJoin = await Join.findOne(condition);
+    return foundJoin;
+  }
+
   async oqweqweGroup() {
     return {};
   }
