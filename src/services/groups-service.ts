@@ -62,7 +62,7 @@ class GroupService {
     return hotGroup;
   }
 
-  async findOneGroup(groupId: string) {
+  async findOneGroup(groupId: string | typeof mongoose.Schema.Types.ObjectId) {
     const group = await Group.findById(groupId)
       .populate('author', 'nickName')
       .populate('currentMembers', 'nickName');
@@ -75,7 +75,10 @@ class GroupService {
 
     await User.findByIdAndUpdate(
       userId,
-      { createdGroup: (await createdGroup)._id },
+      {
+        createdGroup: (await createdGroup)._id,
+        $push: { ongoingGroup: (await createdGroup)._id },
+      },
       { new: true },
     );
     return;
@@ -92,6 +95,10 @@ class GroupService {
   }
 
   async deleteGroup(groupId: string) {
+    await User.updateMany(
+      { wishList: groupId },
+      { $pull: { wishList: groupId } },
+    );
     await User.updateMany(
       { ongoingGroup: groupId },
       { $pull: { ongoingGroup: groupId } },

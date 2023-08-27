@@ -88,4 +88,17 @@ router.patch(
   groupController.deleteOneWishlist,
 );
 
+// 그룹 상태 변경
+router.patch(
+  '/changeStatus/:groupId',
+  isLoggedIn,
+  groupController.patchChangeStatus,
+);
+
+router.patch(
+  '/deleteAllJoinReqList/:groupId',
+  isLoggedIn,
+  groupController.deleteAllJoinReqList,
+);
+
 export default router;

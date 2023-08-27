@@ -6,6 +6,7 @@ import UserService from '../services/users-service';
 import mongoose from 'mongoose';
 import JoinService from '../services/join-service';
 import { throws } from 'assert';
+import { unwatchFile } from 'fs';
 
 class GroupController {
   private groupService: GroupService;
@@ -22,6 +23,7 @@ class GroupController {
     this.joinService = joinService;
   }
 
+  // 전체 그룹 조회
   getAllGroup = async (req: Request, res: Response, next: NextFunction) => {
     const page = Number(req.query.page);
     const perPage = Number(req.query.perPage) || 8;
@@ -56,6 +58,7 @@ class GroupController {
     }
   };
 
+  // ViewCount 상위 4개 그룹 조회
   getHotGroup = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const getGroup = await this.groupService.findHotGroup();
@@ -69,6 +72,7 @@ class GroupController {
     }
   };
 
+  //  그룹 상세 조회(조회 수 추가)
   getGroup = async (req: Request, res: Response, next: NextFunction) => {
     const { groupId } = req.params;
     try {
@@ -83,6 +87,7 @@ class GroupController {
     }
   };
 
+  // 그룹 생성
   postCreateGroup = async (req: Request, res: Response, next: NextFunction) => {
     const createGruopDto = req.body;
     try {
@@ -119,6 +124,7 @@ class GroupController {
     }
   };
 
+  // 그룹 수정
   patchUpdateGroup = async (
     req: Request,
     res: Response,
@@ -151,6 +157,7 @@ class GroupController {
     }
   };
 
+  // 그룹 삭제
   deleteGroup = async (req: Request, res: Response, next: NextFunction) => {
     const { groupId } = req.params;
     try {
@@ -171,8 +178,20 @@ class GroupController {
   // 참여 요청 알림기능 추가 예정
   joinReqGroup = async (req: Request, res: Response, next: NextFunction) => {
     const { groupId } = req.params;
-    const { userId, content } = req.body;
+    const { content } = req.body;
     try {
+      if (!req.user) {
+        return next(new HttpError('USER_NOT_FOUND', 404));
+      }
+      const userTokenInfo = req.user as reqUserInfo;
+      const userId: string = userTokenInfo.userId;
+
+      // 현재 진행중인 그룹이 4개 이하인지 확인
+      const user = await this.userService.getMyInfo(userId);
+      if (!user) return next(new HttpError('USER_NOT_FOUND', 404));
+      if (user.ongoingGroup.length > 4)
+        return next(new HttpError('ONGOINGGROUP_EXIST_4', 400));
+
       const newJoin = await this.joinService.createJoin(
         userId,
         groupId,
@@ -194,6 +213,7 @@ class GroupController {
     }
   };
 
+  // 그룹 참여 신청 리스트 조회
   getGroupJoinList = async (
     req: Request,
     res: Response,
@@ -258,10 +278,16 @@ class GroupController {
   ) => {
     const { joinId } = req.params;
     try {
-      const reqJoin = await this.joinService.findOneJoin({ _id: joinId });
+      const reqJoin = await this.joinService.findJoinInGroup({ _id: joinId });
       if (!reqJoin) return next(new HttpError(`JOIN_NOT_FOUND`, 404));
 
-      const { groupId, userId } = reqJoin;
+      const { userId, groupId } = reqJoin;
+
+      const user = await this.userService.getUser(userId);
+      if (!user) return next(new HttpError('USER_NOT_FOUND', 404));
+      if (user.ongoingGroup.length === 4)
+        return next(new HttpError('ONGOINGGROUP_EXIST_4', 400));
+
       const updateGroupData = {
         $addToSet: { currentMembers: userId },
         $pull: { joinReqList: joinId },
@@ -273,10 +299,21 @@ class GroupController {
       };
       await this.userService.updateUser(userId, updateUserData);
 
-      await this.joinService.deleteOne({ _id: joinId });
+      await this.joinService.deleteOne(joinId);
+
+      const group = await this.groupService.findOneGroup(groupId);
+      if (!group) return next(new HttpError('GROUP_NOT_FOUND', 404));
+      const currentMembers = group.currentMembers.length;
+      const maxMembers = group.maxMembers;
+
+      if (currentMembers === maxMembers) {
+        const updatedGroupData = { status: false };
+        await this.groupService.updateGroup(groupId, updatedGroupData);
+      }
 
       res.status(204).json();
     } catch (err) {
+      console.log(err);
       const error = new HttpError('서버 에러 발생', 500);
       return next(error);
     }
@@ -327,11 +364,8 @@ class GroupController {
       const foundUser = await this.userService.findOngoingGroupList(userId);
       if (!foundUser) return next(new HttpError(`USER_NOT_FOUND`, 404));
       const getData = foundUser.ongoingGroup;
-      const fillteredData = getData.filter(
-        (data: any) => data.status !== '종료',
-      );
 
-      res.status(200).json({ data: fillteredData, error: null });
+      res.status(200).json({ data: getData, error: null });
     } catch (err) {
       const error = new HttpError('서버 에러 발생', 500);
       return next(error);
@@ -417,8 +451,13 @@ class GroupController {
       const userTokenInfo = req.user as reqUserInfo;
       const userId: string = userTokenInfo.userId;
 
+      const user = await this.userService.getUser(userId);
+
       const updatedUserData = { $addToSet: { wishList: groupId } };
       await this.userService.updateUser(userId, updatedUserData);
+
+      const updatedGroupData = { $inc: { wishCount: 1 } };
+      await this.groupService.updateGroup(groupId, updatedGroupData);
 
       res.status(204).json();
     } catch (err) {
@@ -475,8 +514,50 @@ class GroupController {
       return next(error);
     }
   };
+  patchChangeStatus = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const groupId = req.params.groupId;
+    try {
+      const updatedGroupData = { status: false };
+      await this.groupService.updateGroup(groupId, updatedGroupData);
 
-  qweqweGroup = async (req: Request, res: Response, next: NextFunction) => {
+      res.json({ data: null, error: null });
+    } catch (err) {
+      const error = new HttpError('서버 에러 발생', 500);
+      return next(error);
+    }
+  };
+
+  deleteAllJoinReqList = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const groupId = req.params.groupId;
+    try {
+      const updatedGroupData = { joinReqList: [] };
+      await this.groupService.updateGroup(groupId, updatedGroupData);
+
+      await this.joinService.deleteManyByGroupId(groupId);
+
+      // User -> joinRequestGroup 에서 지원삭제된 부분 삭제
+      const updatedUser = { joinReqGroup: { $in: groupId } };
+
+      res.status(204).json();
+    } catch (err) {
+      const error = new HttpError('서버 에러 발생', 500);
+      return next(error);
+    }
+  };
+
+  deleteAllJoinReq2List = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       res.json({ data: null, error: null });
     } catch (err) {
