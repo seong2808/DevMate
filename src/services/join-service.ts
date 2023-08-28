@@ -8,6 +8,11 @@ class JoinService {
     return;
   }
 
+  async deleteManyByUserId(userId: string) {
+    await Join.deleteMany({ userId: userId });
+    return;
+  }
+
   async createJoin(userId: string, groupId: string, content: string) {
     const newJoin = new Join({ userId, groupId, content });
     const join = await newJoin.save();
@@ -29,9 +34,20 @@ class JoinService {
     return deletedJoin;
   }
 
+
   async findByGroupId(groupId: string): Promise<IJoin[]> {
     const join = await Join.find({ groupId: groupId });
     return join;
+  }
+  
+  async findOneJoinByCondition(condition: object) {
+    const foundJoin = await Join.findOne(condition);
+    return foundJoin;
+  }
+
+  async oqweqweGroup() {
+    return {};
+
   }
 }
 

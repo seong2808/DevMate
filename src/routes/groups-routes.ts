@@ -104,4 +104,14 @@ router.patch(
   groupController.deleteAllJoinReqList,
 );
 
+// 지원 취소
+router.patch(
+  '/cancelJoinReq/:groupId',
+  isLoggedIn,
+  groupController.cancelJoinReq,
+);
+
+// 지원 전체 취소
+router.patch('/cancelAllJoinReq', isLoggedIn, groupController.cancelAllJoinReq);
+
 export default router;
