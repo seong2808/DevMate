@@ -29,6 +29,8 @@ app.use('/api/groups', groupRoutes);
 
 app.use('/api/users', usersRoutes);
 
+app.use('/uploads', express.static('uploads'));
+
 app.use(errorHandler);
 
 const initServer = async () => {
