@@ -7,6 +7,11 @@ class JoinService {
     return;
   }
 
+  async deleteManyByUserId(userId: string) {
+    await Join.deleteMany({ userId: userId });
+    return;
+  }
+
   async createJoin(userId: string, groupId: string, content: string) {
     const newJoin = new Join({ userId, groupId, content });
     const join = await newJoin.save();
@@ -26,6 +31,11 @@ class JoinService {
   async deleteOne(joinId: string | object) {
     const deletedJoin = await Join.findByIdAndDelete({ _id: joinId });
     return deletedJoin;
+  }
+
+  async findOneJoinByCondition(condition: object) {
+    const foundJoin = await Join.findOne(condition);
+    return foundJoin;
   }
 
   async oqweqweGroup() {
