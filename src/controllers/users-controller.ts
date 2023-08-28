@@ -172,7 +172,7 @@ class UserController {
     try {
       const foundUser = await this.userService.findUserById(userId);
       if (foundUser?.createdGroup) {
-        return;
+        return; //논의 필요
       }
       // Group 해당 User 데이터 삭제
       // currentMember에 탈퇴userId가 존재하면 제거
@@ -185,10 +185,10 @@ class UserController {
       await this.joinService.deleteManyByUserId(userId);
 
       // Notification 해당 User 데이터 삭제
-      // 추후 구현 예정
+      await this.notificationService.deleteAll(userId);
 
-      // User 스키마에서 해당 User를 삭제
-      const userToDelete = await this.userService.deleteUser(userId);
+      // User 스키마에서 해당 User 삭제
+      await this.userService.deleteUser(userId);
 
       res.status(204).json({ message: '삭제 완료' });
     } catch (err) {
