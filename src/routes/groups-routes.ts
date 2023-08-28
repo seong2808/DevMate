@@ -155,6 +155,9 @@ router.patch(
 );
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8c0ec79 (Feat: 알림 기능 구현)
 // 그룹 탈퇴
 router.patch(
   '/exitUserInGroup/:groupId',
@@ -165,6 +168,9 @@ router.patch(
 // 지원 전체 취소
 router.patch('/cancelAllJoinReq', isLoggedIn, groupController.cancelAllJoinReq);
 
+<<<<<<< HEAD
 =======
 >>>>>>> 031dcb9 (Feat: 그룹 지원 전체 취소 구현)
+=======
+>>>>>>> 8c0ec79 (Feat: 알림 기능 구현)
 export default router;

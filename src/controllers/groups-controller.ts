@@ -619,13 +619,20 @@ class GroupController {
       const updateUserData = { joinRequestGroup: [] };
       await this.userService.updateUser(userId, updateUserData);
 
-      await this.joinService.deleteManyByUserId(userId); //delete 필요
+      const foundJoinList = await this.joinService.findByUserId(userId); //delete 필요
 
-      // const updateGroupData = { $set: { joinReqList: foundJoin?._id } };
-      // await this.groupService.updateGroup(groupId, updateGroupData);
+      const foundJoinIdList: string[] = foundJoinList.map((el) => el._id);
+
+      // group의 joinReqList에서 각각 joinId로 찾아서 전부 삭제하는 기능
+      const updatedGroup = await this.groupService.findByJoinIdAndUpdate(
+        foundJoinIdList,
+      );
+
+      await this.joinService.deleteByUserId(userId);
 
       res.json({ data: null, error: null });
     } catch (err) {
+      console.log(err);
       const error = new HttpError('서버 에러 발생', 500);
       return next(error);
     }
