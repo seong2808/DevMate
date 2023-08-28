@@ -6,7 +6,6 @@ import UserService from '../services/users-service';
 import mongoose from 'mongoose';
 import JoinService from '../services/join-service';
 import NotificationService from '../services/notification-service';
-import Group from '../models/Group';
 
 class GroupController {
   private groupService: GroupService;
@@ -202,7 +201,7 @@ class GroupController {
       await this.userService.updateUser(userId, updateUserData);
 
       const notificationData = {
-        receiverId: currentGroup.author.toString(),
+        receiverId: currentGroup.author.toString().slice(21, 45),
         senderId: userId,
         groupId: groupId,
         content: `${currentGroup.title} 그룹 가입 신청이 들어왔습니다.`,
@@ -213,12 +212,19 @@ class GroupController {
       const newNotification = await this.notificationService.createNotification(
         notificationData,
       );
-      // console.log(newNotification);
+
+      const updateReceiverData = {
+        $push: { notifications: newNotification._id },
+      };
+      await this.userService.updateUser(
+        currentGroup.author,
+        updateReceiverData,
+      );
 
       res.status(204).json();
     } catch (err) {
       const error = new HttpError('서버 에러 발생', 500);
-      // console.log(err);
+      console.log(err);
       return next(error);
     }
   };
@@ -278,7 +284,10 @@ class GroupController {
   ) => {
     const { joinId } = req.params;
     try {
-      const reqJoin = await this.joinService.findJoinInGroup({ _id: joinId });
+      const userTokenInfo = req.user as reqUserInfo;
+      const groupAuthorId: string = userTokenInfo.userId;
+
+      const reqJoin = await this.joinService.findOneJoin({ _id: joinId });
       if (!reqJoin) return next(new HttpError(`JOIN_NOT_FOUND`, 404));
 
       const { userId, groupId } = reqJoin;
@@ -293,11 +302,6 @@ class GroupController {
         $pull: { joinReqList: joinId },
       };
       await this.groupService.updateGroup(groupId, updateGroupData);
-      const updateUserData = {
-        $addToSet: { ongoingGroup: groupId },
-        $pull: { joinRequestGroup: groupId },
-      };
-      await this.userService.updateUser(userId, updateUserData);
 
       await this.joinService.deleteOne(joinId);
 
@@ -311,13 +315,29 @@ class GroupController {
         await this.groupService.updateGroup(groupId, updatedGroupData);
       }
 
-      const notificationData = {};
+      const notificationData = {
+        receiverId: userId,
+        senderId: groupAuthorId,
+        groupId: groupId,
+        content: `${group.title} 그룹 가입 신청이 승인되었습니다.`,
+        type: group.type,
+        kind: 'approval',
+      };
+
+      const newNotification = await this.notificationService.createNotification(
+        notificationData,
+      );
+
+      const updateUserData = {
+        $addToSet: { ongoingGroup: groupId },
+        $pull: { joinRequestGroup: groupId },
+        $push: { notifications: newNotification._id },
+      };
+      await this.userService.updateUser(userId, updateUserData);
 
       res.status(204).json();
     } catch (err) {
-      // console.log(err);
       const error = new HttpError('서버 에러 발생', 500);
-      return next(error);
     }
   };
 
@@ -329,6 +349,9 @@ class GroupController {
   ) => {
     const { joinId } = req.params;
     try {
+      const userTokenInfo = req.user as reqUserInfo;
+      const groupAuthorId: string = userTokenInfo.userId;
+
       const reqJoin = await this.joinService.findOneJoin({ _id: joinId });
       if (!reqJoin) return next(new HttpError(`JOIN_NOT_FOUND`, 404));
 
@@ -336,16 +359,36 @@ class GroupController {
       const updateGroupData = {
         $pull: { joinReqList: joinId },
       };
+
+      const group = await this.groupService.findOneGroup(groupId);
+      if (!group) return next(new HttpError('GROUP_NOT_FOUND', 404));
+
       await this.groupService.updateGroup(groupId, updateGroupData);
+
+      await this.joinService.deleteOne(joinId);
+
+      const notificationData = {
+        receiverId: userId,
+        senderId: groupAuthorId,
+        groupId: groupId,
+        content: `${group.title} 그룹 가입 신청이 거절되었습니다.`,
+        type: group.type,
+        kind: 'reject',
+      };
+
+      const newNotification = await this.notificationService.createNotification(
+        notificationData,
+      );
+
       const updateUserData = {
         $pull: { joinRequestGroup: groupId },
+        $push: { notifications: newNotification._id },
       };
       await this.userService.updateUser(userId, updateUserData);
 
-      await this.joinService.deleteOne({ _id: joinId });
-
       res.status(204).json();
     } catch (err) {
+      console.log(err);
       const error = new HttpError('서버 에러 발생', 500);
       return next(error);
     }
@@ -507,15 +550,24 @@ class GroupController {
   ) => {
     const groupId = req.params.groupId;
     try {
-      const updatedGroupData = { joinReqList: [] };
-      await this.groupService.updateGroup(groupId, updatedGroupData);
+      const userTokenInfo = req.user as reqUserInfo;
+      const userId: string = userTokenInfo.userId;
 
-      // User -> joinRequestGroup 에서 지원삭제된 부분 삭제
-      const groupIdInJoins = await this.joinService.findByGroupId(groupId);
-      if (!groupIdInJoins) return;
+      const group = await this.groupService.findOneGroup(groupId);
+      if (!group) return next(new HttpError(`GROUP_NOT_FOUND`, 404));
 
-      await this.userService.deleteJoinInUser(groupIdInJoins, groupId);
-      await this.joinService.deleteManyByGroupId(groupId);
+      // const notificationData = {
+      //   receiverId: (거절 당한 사람ID),
+      //   senderId: userId,
+      //   groupId: groupId,
+      //   content: `${group.title} 그룹 가입 신청이 거절되었습니다.`,
+      //   type: group.type,
+      //   kind: 'reject',
+      // };
+
+      // const newNotification = await this.notificationService.createNotification(
+      //   notificationData,
+      // );
 
       res.status(204).json();
     } catch (err) {
@@ -586,11 +638,78 @@ class GroupController {
     }
   };
 
-  deleteAllJoinReq2List = async (
+  exitGroup = async (req: Request, res: Response, next: NextFunction) => {
+    const { groupId } = req.params;
+    try {
+      const userTokenInfo = req.user as reqUserInfo;
+      const userId: string = userTokenInfo.userId;
+
+      const updatedGroupData = { $pull: { currentMembers: userId } };
+      const group = await this.groupService.updateGroup(
+        groupId,
+        updatedGroupData,
+      );
+      if (!group) return next(new HttpError('GROUP_NOT_FOUND', 404));
+
+      const updateUserData = {
+        $pull: { ongoingGroup: groupId },
+      };
+      const user = await this.userService.updateUser(userId, updateUserData);
+      if (!user) return next(new HttpError('USER_NOT_FOUND', 404));
+
+      const notificationData = {
+        receiverId: group.author,
+        senderId: userId,
+        groupId: groupId,
+        content: `${user.nickname}이 ${group.title} 그룹에서 탈퇴하셨습니다.`,
+        type: group.type,
+        kind: 'exit',
+      };
+
+      const newNotification = await this.notificationService.createNotification(
+        notificationData,
+      );
+
+      const updateReceiverData = {
+        $push: { notifications: newNotification._id },
+      };
+      await this.userService.updateUser(group.author, updateReceiverData);
+
+      res.status(204).json();
+    } catch (err) {
+      console.log(err);
+      const error = new HttpError('서버 에러 발생', 500);
+      return next(error);
+    }
+  };
+
+  getAllNotification = async (
     req: Request,
     res: Response,
     next: NextFunction,
   ) => {
+    try {
+      const userTokenInfo = req.user as reqUserInfo;
+      const userId: string = userTokenInfo.userId;
+
+      // const userNotification = await this.notificationService.getNotification(
+      //   userId,
+      // );
+      // console.log(userNotification);
+
+      res.json({ data: null, error: null });
+    } catch (err) {
+      const error = new HttpError('서버 에러 발생', 500);
+      return next(error);
+    }
+  };
+
+  deleteNotification = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const notificationId = req.params.notificationId;
     try {
       res.json({ data: null, error: null });
     } catch (err) {

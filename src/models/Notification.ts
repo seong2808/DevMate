@@ -2,18 +2,18 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface INotification extends Document {
   // 알림을 받는 사람
-  receiverId: typeof Schema.Types.ObjectId;
+  receiverId: string;
   // 알림을 보내는 사람
-  senderId: typeof Schema.Types.ObjectId;
+  senderId: string;
   // 신청 받은 그룹
-  groupId: typeof Schema.Types.ObjectId;
+  groupId: string;
   content: string;
   type: NotificationTypes;
   kind: NotificationKind;
   status?: boolean;
 }
 
-export type NotificationKind = 'approval' | 'reject' | 'join';
+export type NotificationKind = 'approval' | 'reject' | 'join' | 'exit';
 export type NotificationTypes = 'study' | 'project';
 
 const notificationSchema = new Schema<INotification>(

@@ -69,16 +69,6 @@ class UserService {
   // }
 
   async deleteJoinInUser(groupIdInJoins: IJoin[], groupId: string) {
-    for (const join of groupIdInJoins) {
-      const user = await User.findById(join.userId);
-      await User.findByIdAndUpdate(
-        join.userId,
-        { $pull: { joinRequestGroup: groupId } },
-        {
-          new: true,
-        },
-      );
-    }
     return;
   }
 }
