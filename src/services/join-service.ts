@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import Join, { IJoin } from '../models/Join';
+import User from '../models/User';
 
 class JoinService {
   async deleteManyByGroupId(groupId: string) {
@@ -28,8 +29,9 @@ class JoinService {
     return deletedJoin;
   }
 
-  async oqweqweGroup() {
-    return {};
+  async findByGroupId(groupId: string): Promise<IJoin[]> {
+    const join = await Join.find({ groupId: groupId });
+    return join;
   }
 }
 

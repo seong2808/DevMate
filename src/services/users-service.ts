@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import User from '../models/User';
 import { IUser } from '../types/users-types';
+import { IJoin } from '../models/Join';
+import { group } from 'console';
 
 class UserService {
   // 전체 정보 조회
@@ -54,9 +56,25 @@ class UserService {
     return foundUser;
   }
 
-  async JoinGroupList(userId: string) {
-    const foundUser = await User.findById(userId).populate('joinRequestGroup');
-    return foundUser;
+  // async JoinGroupList(userId: string) {
+  //   const foundUser = await User.findById(userId)
+  //     .populate('joinRequestGroup')
+  //     .exec();
+  //   return foundUser;
+  // }
+
+  async deleteJoinInUser(groupIdInJoins: IJoin[], groupId: string) {
+    for (const join of groupIdInJoins) {
+      const user = await User.findById(join.userId);
+      await User.findByIdAndUpdate(
+        join.userId,
+        { $pull: { joinRequestGroup: groupId } },
+        {
+          new: true,
+        },
+      );
+    }
+    return;
   }
 }
 
