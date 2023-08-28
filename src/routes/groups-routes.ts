@@ -140,13 +140,21 @@ router.patch(
   groupController.deleteAllJoinReqList,
 );
 
+// 지원 전체 취소
+router.patch(
+  '/join/cancelAllReq',
+  isLoggedIn,
+  groupController.cancelAllJoinReq,
+);
+
 // 지원 취소
 router.patch(
-  '/cancelJoinReq/:groupId',
+  '/join/cancelReq/:groupId',
   isLoggedIn,
   groupController.cancelJoinReq,
 );
 
+<<<<<<< HEAD
 // 그룹 탈퇴
 router.patch(
   '/exitUserInGroup/:groupId',
@@ -157,4 +165,6 @@ router.patch(
 // 지원 전체 취소
 router.patch('/cancelAllJoinReq', isLoggedIn, groupController.cancelAllJoinReq);
 
+=======
+>>>>>>> 031dcb9 (Feat: 그룹 지원 전체 취소 구현)
 export default router;
