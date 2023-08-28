@@ -5,9 +5,17 @@ import generateJWT from '../utils/generate-jwt';
 import hashPassword from '../utils/hash-password';
 import { HttpError } from '../middlewares/error.handler';
 import UserService from '../services/users-service';
+import GroupService from '../services/groups-service';
+import JoinService from '../services/join-service';
+import NotificationService from '../services/notification-service';
+import Group from '../models/Group';
+import Notification from '../models/Notification';
 
 class UserController {
   private userService: UserService;
+  private groupService: GroupService;
+  private joinService: JoinService;
+  private notificationService: NotificationService;
 
   constructor(userService: UserService) {
     this.userService = userService;
@@ -162,8 +170,27 @@ class UserController {
     const userId: string = userTokenInfo.userId;
 
     try {
+      const foundUser = await this.userService.findUserById(userId);
+      if (foundUser?.createdGroup) {
+        return;
+      }
+      // Group 해당 User 데이터 삭제
+      // currentMember에 탈퇴userId가 존재하면 제거
+      await Group.updateMany(
+        { currentMembers: userId },
+        { $pull: { currentMembers: userId } },
+      );
+
+      // Join 해당 User 데이터 삭제
+      await this.joinService.deleteManyByUserId(userId);
+
+      // Notification 해당 User 데이터 삭제
+      // 추후 구현 예정
+
+      // User 스키마에서 해당 User를 삭제
       const userToDelete = await this.userService.deleteUser(userId);
-      res.status(204).json({ message: '삭제 완료' }); // redirect 여부 의논 필요
+
+      res.status(204).json({ message: '삭제 완료' });
     } catch (err) {
       const error = new HttpError('서버 에러 발생', 500);
       return next(error);
