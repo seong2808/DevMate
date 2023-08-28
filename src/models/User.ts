@@ -17,7 +17,6 @@ const userSchema = new Schema<IUser>(
 
     wishList: { type: [{ type: Schema.Types.ObjectId, ref: 'Group' }] }, // 찜한 그룹 목록
     ongoingGroup: { type: [{ type: Schema.Types.ObjectId, ref: 'Group' }] },
-    endGroup: { type: [{ type: Schema.Types.ObjectId, ref: 'Group' }] },
     joinRequestGroup: { type: [{ type: Schema.Types.ObjectId, ref: 'Group' }] },
     notifications: { type: [{ type: Schema.Types.ObjectId, ref: 'Group' }] },
   },

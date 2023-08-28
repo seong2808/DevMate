@@ -24,11 +24,11 @@ class GroupService {
               location ? { location: location } : {},
               skill ? { skills: { $in: skill } } : {},
               type ? { type: type } : {},
-              { status: '모집중' },
+              { status: true },
             ],
           }
         : {
-            status: '모집중',
+            status: true,
           },
     )
       .sort(sortByTime ? { createdAt: -1 } : { viewCount: -1 })
@@ -43,11 +43,11 @@ class GroupService {
               location ? { location: location } : {},
               skill ? { skills: { $in: skill } } : {},
               type ? { type: type } : {},
-              { status: '모집중' },
+              { status: true },
             ],
           }
         : {
-            status: '모집중',
+            status: true,
           },
     );
 
@@ -66,6 +66,13 @@ class GroupService {
     const group = await Group.findById(groupId)
       .populate('author', 'nickName')
       .populate('currentMembers', 'nickName');
+    return group;
+  }
+
+  async findJoinReqList(
+    groupId: string | typeof mongoose.Schema.Types.ObjectId,
+  ) {
+    const group = await Group.findById(groupId).populate('joinReqList');
     return group;
   }
 
@@ -104,8 +111,8 @@ class GroupService {
       { $pull: { ongoingGroup: groupId } },
     );
     await User.updateMany(
-      { endGroup: groupId },
-      { $pull: { endGroup: groupId } },
+      { joinRequestGroup: groupId },
+      { $pull: { joinRequestGroup: groupId } },
     );
     await User.updateMany({ createdGroup: groupId }, { createdGroup: null });
     return;
@@ -126,6 +133,28 @@ class GroupService {
       { new: true },
     );
     return;
+  }
+
+  async GroupinUserPagination(
+    groupIds: (typeof mongoose.Schema.Types.ObjectId)[],
+    groupType: string,
+    page: number,
+    perPage: number,
+  ) {
+    const groupsInfo: object[] = [];
+    let limit = 0;
+    console.log(groupType);
+    const totalData = groupIds.length;
+    for (let i = (page - 1) * perPage; i < totalData; i++) {
+      if (limit === perPage) break;
+      const groupInfo = await Group.findOne({
+        $and: [{ _id: groupIds[i] }, { type: groupType }],
+      });
+      if (groupInfo) groupsInfo.push(groupInfo);
+      limit++;
+    }
+
+    return groupsInfo;
   }
 }
 

@@ -7,15 +7,18 @@ import GroupController from '../controllers/groupsController';
 import GroupService from '../services/groups-service';
 import UserService from '../services/users-service';
 import JoinService from '../services/join-service';
+import NotificationService from '../services/notification-service';
 
 const router = Router();
 const groupService = new GroupService();
 const userService = new UserService();
 const joinService = new JoinService();
+const notificationService = new NotificationService();
 const groupController = new GroupController(
   groupService,
   userService,
   joinService,
+  notificationService,
 );
 
 router.get('/', handleGroupVisit, groupController.getAllGroup);
@@ -25,7 +28,11 @@ router.get('/:groupId', handleGroupVisit, groupController.getGroup);
 router.get('/main/hotGroup', handleGroupVisit, groupController.getHotGroup);
 
 // 관심 그룹
-router.get('/myGroup/wishGroup', isLoggedIn, groupController.getWishGroupList);
+router.get(
+  '/myGroup/wishGroup/:type',
+  isLoggedIn,
+  groupController.getWishGroupList,
+);
 // 생성한
 router.get(
   '/myGroup/createdGroup',
@@ -40,7 +47,7 @@ router.get(
 );
 // 지원한
 router.get(
-  '/myGroup/joinRequestGroup',
+  '/myGroup/joinRequestGroup/:type',
   isLoggedIn,
   groupController.getJoinGroupList,
 );
@@ -54,8 +61,6 @@ router.post(
   isLoggedIn,
   groupController.postCreateGroup,
 );
-
-router.patch('/endGroup/:groupId', isLoggedIn, groupController.patchEndGroup);
 
 // 수정
 router.patch(
@@ -80,12 +85,10 @@ router.patch(
   groupController.rejectGroupJoinRequest,
 );
 
-router.patch('/subscribe/:groupId', isLoggedIn, groupController.patchWishlist);
-
 router.patch(
-  '/unsubscribe/:groupId',
+  '/subscribe/:groupId/:wishState',
   isLoggedIn,
-  groupController.deleteOneWishlist,
+  groupController.patchWishlist,
 );
 
 // 그룹 상태 변경
