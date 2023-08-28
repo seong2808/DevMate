@@ -593,6 +593,14 @@ class GroupController {
       const userTokenInfo = req.user as reqUserInfo;
       const userId: string = userTokenInfo.userId;
 
+      const updateUserData = { joinRequestGroup: [] };
+      await this.userService.updateUser(userId, updateUserData);
+
+      await this.joinService.deleteManyByUserId(userId); //delete 필요
+
+      // const updateGroupData = { $set: { joinReqList: foundJoin?._id } };
+      // await this.groupService.updateGroup(groupId, updateGroupData);
+
       res.json({ data: null, error: null });
     } catch (err) {
       const error = new HttpError('서버 에러 발생', 500);

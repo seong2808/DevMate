@@ -7,6 +7,11 @@ class JoinService {
     return;
   }
 
+  async deleteManyByUserId(userId: string) {
+    await Join.deleteMany({ userId: userId });
+    return;
+  }
+
   async createJoin(userId: string, groupId: string, content: string) {
     const newJoin = new Join({ userId, groupId, content });
     const join = await newJoin.save();
