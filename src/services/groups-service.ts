@@ -156,6 +156,15 @@ class GroupService {
 
     return groupsInfo;
   }
+
+  async findByJoinIdAndUpdate(condition: string[]) {
+    const result = await Group.updateMany(
+      { joinReqList: { $in: condition } },
+      { $pull: { joinReqList: { $in: condition } } },
+    );
+
+    return result;
+  }
 }
 
 export default GroupService;

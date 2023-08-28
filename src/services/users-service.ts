@@ -26,6 +26,11 @@ class UserService {
     return foundUser;
   }
 
+  async findUserById(userId: string) {
+    const foundUser = await User.findOne({ userId });
+    return foundUser;
+  }
+
   async updateUser(
     userId: string | typeof mongoose.Schema.Types.ObjectId,
     updates: IUser | object,
