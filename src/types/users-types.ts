@@ -13,7 +13,6 @@ export interface IUser {
   };
   createdGroup: typeof Schema.Types.ObjectId;
   wishList: (typeof Schema.Types.ObjectId)[];
-  endGroup: (typeof Schema.Types.ObjectId)[];
   ongoingGroup: (typeof Schema.Types.ObjectId)[];
   joinRequestGroup: (typeof Schema.Types.ObjectId)[];
 
