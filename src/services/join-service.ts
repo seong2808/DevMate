@@ -10,8 +10,8 @@ class JoinService {
   }
 
   async deleteManyByUserId(userId: string) {
-    await Join.deleteMany({ userId: userId });
-    return;
+    const join = await Join.deleteMany({ userId: userId });
+    return join;
   }
 
   async createJoin(userId: string, groupId: string, content: string) {

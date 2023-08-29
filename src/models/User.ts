@@ -9,8 +9,8 @@ const userSchema = new Schema<IUser>({
   overview: { type: String, default: '' },
   skills: { type: [String] },
   links: {
-    gitHub: { type: String },
-    blog: { type: String },
+    gitHub: { type: String, default: '' },
+    blog: { type: String, default: '' },
   },
   createdGroup: { type: Schema.Types.ObjectId, ref: 'Group' },
 
