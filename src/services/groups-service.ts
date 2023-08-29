@@ -140,11 +140,11 @@ class GroupService {
     groupType: string,
     page: number,
     perPage: number,
+    totalData: number,
   ) {
     const groupsInfo: object[] = [];
     let limit = 0;
     console.log(groupType);
-    const totalData = groupIds.length;
     for (let i = (page - 1) * perPage; i < totalData; i++) {
       if (limit === perPage) break;
       const groupInfo = await Group.findOne({
