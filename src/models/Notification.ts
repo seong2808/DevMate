@@ -2,63 +2,68 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface INotification extends Document {
   // 알림을 받는 사람
-  receiverId: typeof Schema.Types.ObjectId;
+  receiverId: string;
   // 알림을 보내는 사람
-  senderId: typeof Schema.Types.ObjectId;
+  senderId: string;
   // 신청 받은 그룹
-  groupId?: typeof Schema.Types.ObjectId;
-  reportId?: typeof Schema.Types.ObjectId;
-  content?: string;
+  groupId: string;
+  content: string;
   type: NotificationTypes;
   kind: NotificationKind;
   status?: boolean;
 }
 
-export type NotificationKind = 'approval' | 'reject' | 'join';
+export type NotificationKind =
+  | 'approval'
+  | 'reject'
+  | 'join'
+  | 'exit'
+  | 'delete';
 export type NotificationTypes = 'study' | 'project';
 
-const notificationSchema = new Schema<INotification>({
-  receiverId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
+const notificationSchema = new Schema<INotification>(
+  {
+    receiverId: {
+      type: String,
+      required: true,
+    },
+    senderId: {
+      type: String,
+      required: true,
+    },
+    groupId: {
+      type: String,
+      required: true,
+    },
+    content: {
+      type: String,
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: ['study', 'project'],
+      required: true,
+    },
+    kind: {
+      type: String,
+      enum: ['approval', 'reject', 'join', 'exit', 'delete'],
+      required: true,
+    },
+    status: {
+      type: Boolean,
+      // true = 알림 미확인, false = 확인 후 삭제
+      default: true,
+      required: true,
+    },
   },
-  senderId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
+  {
+    timestamps: {
+      createdAt: true,
+    },
   },
-  groupId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Group',
-    required: true,
-  },
-  reportId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Report',
-  },
-  content: {
-    type: String,
-  },
-  type: {
-    type: String,
-    enum: ['study', 'project'],
-    required: true,
-  },
-  kind: {
-    type: String,
-    enum: ['approval', 'reject', 'join'],
-    required: true,
-  },
-  status: {
-    type: Boolean,
-    // true = 알림 미확인, false = 확인 후 삭제
-    default: true,
-    required: true,
-  },
-});
-
-export default mongoose.model<INotification>(
+);
+const Notification = mongoose.model<INotification>(
   'Notification',
   notificationSchema,
 );
+export default Notification;

@@ -5,9 +5,20 @@ import passport from 'passport';
 import upload from '../middlewares/uploadFile.handler';
 import UserController from '../controllers/users-controller';
 import UserService from '../services/users-service';
+import GroupService from '../services/groups-service';
+import JoinService from '../services/join-service';
+import NotificationService from '../services/notification-service';
 
 const userService = new UserService();
-const userController = new UserController(userService);
+const groupService = new GroupService();
+const joinService = new JoinService();
+const notificationService = new NotificationService();
+const userController = new UserController(
+  userService,
+  groupService,
+  joinService,
+  notificationService,
+);
 
 const router = express.Router();
 
