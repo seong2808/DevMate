@@ -100,7 +100,7 @@ router.patch(
 );
 
 // 삭제
-router.delete('/:groupId', groupController.deleteGroup);
+router.delete('/:groupId', isLoggedIn, groupController.deleteGroup);
 
 // 그룹 참여 요청
 router.post('/joinRequests/:groupId', groupController.joinReqGroup);
@@ -145,6 +145,13 @@ router.patch(
   '/join/cancelAllReq',
   isLoggedIn,
   groupController.cancelAllJoinReq,
+);
+
+// 관심 그룹 전체 삭제
+router.patch(
+  '/WishList/deleteAll',
+  isLoggedIn,
+  groupController.deleteAllWishList,
 );
 
 // 지원 취소

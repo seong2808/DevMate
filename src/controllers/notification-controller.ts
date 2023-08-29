@@ -63,10 +63,8 @@ class NotificationController {
       const userId: string = userTokenInfo.userId;
       const updateUserData = { notifications: [] };
 
-      await this.userService.updateUser(userId, updateUserData);
-
-      await this.notificationService.deleteAll(userId);
-
+      const result = await this.userService.updateUser(userId, updateUserData);
+      const notiResult = await this.notificationService.deleteAll(userId);
       res.status(204).json();
     } catch (err) {
       const error = new HttpError('서버 에러 발생', 500);

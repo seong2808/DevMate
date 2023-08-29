@@ -13,7 +13,12 @@ export interface INotification extends Document {
   status?: boolean;
 }
 
-export type NotificationKind = 'approval' | 'reject' | 'join' | 'exit';
+export type NotificationKind =
+  | 'approval'
+  | 'reject'
+  | 'join'
+  | 'exit'
+  | 'delete';
 export type NotificationTypes = 'study' | 'project';
 
 const notificationSchema = new Schema<INotification>(
@@ -41,7 +46,7 @@ const notificationSchema = new Schema<INotification>(
     },
     kind: {
       type: String,
-      enum: ['approval', 'reject', 'join', 'exit'],
+      enum: ['approval', 'reject', 'join', 'exit', 'delete'],
       required: true,
     },
     status: {
