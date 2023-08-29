@@ -27,7 +27,7 @@ class UserService {
   }
 
   async findUserById(userId: string) {
-    const foundUser = await User.findOne({ userId });
+    const foundUser = await User.findById(userId);
     return foundUser;
   }
 
@@ -60,13 +60,6 @@ class UserService {
     const foundUser = await User.findById(userId).populate('createdGroup');
     return foundUser;
   }
-
-  // async JoinGroupList(userId: string) {
-  //   const foundUser = await User.findById(userId)
-  //     .populate('joinRequestGroup')
-  //     .exec();
-  //   return foundUser;
-  // }
 
   async deleteJoinInUser(groupIdInJoins: IJoin[], groupId: string) {
     return;

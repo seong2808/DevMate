@@ -9,7 +9,6 @@ import GroupService from '../services/groups-service';
 import JoinService from '../services/join-service';
 import NotificationService from '../services/notification-service';
 import Group from '../models/Group';
-import Notification from '../models/Notification';
 
 class UserController {
   private userService: UserService;
@@ -17,8 +16,16 @@ class UserController {
   private joinService: JoinService;
   private notificationService: NotificationService;
 
-  constructor(userService: UserService) {
+  constructor(
+    userService: UserService,
+    groupService: GroupService,
+    joinService: JoinService,
+    notificationService: NotificationService,
+  ) {
     this.userService = userService;
+    this.groupService = groupService;
+    this.joinService = joinService;
+    this.notificationService = notificationService;
   }
 
   //전체 사용자 정보 조회 (추후 삭제)
@@ -131,9 +138,9 @@ class UserController {
     }
     const userTokenInfo = req.user as reqUserInfo;
     const userId: string = userTokenInfo.userId;
+    const foundUser = await this.userService.findUserById(userId);
 
     const { body } = req;
-    // console.log({ ...body, links: JSON.parse(body.links) });
     const updates: IUser = {
       ...body,
       links: JSON.parse(body.links),
@@ -145,7 +152,11 @@ class UserController {
       );
     }
 
-    updates.profileImage = req.file ? req.file.path : ''; // 이미지 파일 처리
+    updates.profileImage = req.file
+      ? req.file.path
+      : 'imageFile' in updates
+      ? ''
+      : foundUser?.profileImage;
 
     try {
       const updatedUser = await this.userService.updateUser(userId, updates);
@@ -159,20 +170,21 @@ class UserController {
     }
   };
 
-  //사용자 정보 삭제
+  //사용자 정보 삭제 (회원 탈퇴)
   deleteUser = async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      return next(
-        new HttpError('인증되지 않은 유저입니다. 로그인 해주세요.', 401),
-      );
-    }
     const userTokenInfo = req.user as reqUserInfo;
     const userId: string = userTokenInfo.userId;
 
     try {
       const foundUser = await this.userService.findUserById(userId);
+      //생성 그룹 존재시 에러발생
       if (foundUser?.createdGroup) {
-        return;
+        return next(
+          new HttpError(
+            '회원 탈퇴를 진행할 수 없습니다. 생성한 그룹을 삭제하고 다시 시도해주세요.',
+            409,
+          ),
+        );
       }
       // Group 해당 User 데이터 삭제
       // currentMember에 탈퇴userId가 존재하면 제거
@@ -185,13 +197,14 @@ class UserController {
       await this.joinService.deleteManyByUserId(userId);
 
       // Notification 해당 User 데이터 삭제
-      // 추후 구현 예정
+      await this.notificationService.deleteAll(userId);
 
-      // User 스키마에서 해당 User를 삭제
-      const userToDelete = await this.userService.deleteUser(userId);
+      // User 스키마에서 해당 User 삭제
+      await this.userService.deleteUser(userId);
 
       res.status(204).json({ message: '삭제 완료' });
     } catch (err) {
+      console.log(err);
       const error = new HttpError('서버 에러 발생', 500);
       return next(error);
     }
