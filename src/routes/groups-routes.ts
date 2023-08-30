@@ -94,7 +94,7 @@ router.post(
 
 // 수정
 router.patch(
-  '/:groupId',
+  '/updateGroup/:groupId',
   upload.single('imageFile'),
   groupController.patchUpdateGroup,
 );
