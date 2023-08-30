@@ -1,8 +1,6 @@
 import mongoose from 'mongoose';
 import User from '../models/User';
 import { IUser } from '../types/users-types';
-import { IJoin } from '../models/Join';
-import { group } from 'console';
 import { IGroup } from '../types/groups-types';
 import Notification from '../models/Notification';
 
@@ -17,22 +15,17 @@ class UserService {
     const foundUser = await User.findById(userId, '-password');
     return foundUser;
   }
-  //
+  // 다른 사람 정보 조회
   async getUser(userId: string | typeof mongoose.Schema.Types.ObjectId) {
     const foundUser = await User.findById(userId, '-password');
     return foundUser;
   }
-
+  // 이메일로 유저 찾기
   async findUserByEmail(email: string) {
     const foundUser = await User.findOne({ email });
     return foundUser;
   }
-
-  async findUserById(userId: string) {
-    const foundUser = await User.findById(userId);
-    return foundUser;
-  }
-
+  // 유저 업데이트
   async updateUser(
     userId: string | typeof mongoose.Schema.Types.ObjectId | object,
     updates: IUser | object,
@@ -43,26 +36,26 @@ class UserService {
     });
     return updatedUser;
   }
-
+  // 유저 삭제
   async deleteUser(userId: string) {
     await User.findByIdAndDelete(userId);
   }
-
+  // 유저 진행중 그룹 조회
   async findOngoingGroupList(userId: string) {
     const foundUser = await User.findById(userId).populate('ongoingGroup');
     return foundUser;
   }
-
+  // 유저 관심 그룹 조회
   async findWishGroupList(userId: string) {
     const foundUser = await User.findById(userId).populate('wishList');
     return foundUser;
   }
-
+  // 유저 생성 그룹 조회
   async CreatedGroupList(userId: string) {
     const foundUser = await User.findById(userId).populate('createdGroup');
     return foundUser;
   }
-
+  // 유저 그룹 정보 삭제
   async deleteCurrentMemberInGroup(
     group: mongoose.Document<unknown, {}, IGroup> &
       IGroup & {

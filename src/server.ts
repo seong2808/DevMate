@@ -12,7 +12,6 @@ import passport from 'passport';
 import passportIndex from './passport';
 import getToken from './middlewares/get-token.handler';
 import { errorHandler } from './middlewares/error.handler';
-import path from 'path';
 
 passportIndex();
 

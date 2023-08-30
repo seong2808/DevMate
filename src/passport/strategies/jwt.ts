@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
+import { Strategy as JwtStrategy } from 'passport-jwt';
 import { Request } from 'express';
 
 const cookieExtractor = (req: Request) => {
@@ -8,7 +8,6 @@ const cookieExtractor = (req: Request) => {
 };
 const jwtConfig = {
   jwtFromRequest: cookieExtractor,
-  // ExtractJwt.fromAuthHeaderAsBearerToken(),
   secretOrKey: process.env.JWT_SECRET,
 };
 
