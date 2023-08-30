@@ -32,14 +32,16 @@ const userSchema = new mongoose_1.Schema({
     overview: { type: String, default: '' },
     skills: { type: [String] },
     links: {
-        gitHub: { type: String },
-        blog: { type: String },
+        gitHub: { type: String, default: '' },
+        blog: { type: String, default: '' },
     },
     createdGroup: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Group' },
     wishList: { type: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'Group' }] },
     ongoingGroup: { type: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'Group' }] },
-    endGroup: { type: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'Group' }] },
     joinRequestGroup: { type: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'Group' }] },
-    notifications: { type: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'Group' }] },
+    notifications: {
+        type: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'Notification' }],
+    },
 });
-exports.default = mongoose_1.default.model('User', userSchema);
+const User = mongoose_1.default.model('User', userSchema);
+exports.default = User;
