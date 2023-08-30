@@ -192,9 +192,9 @@ const groupSchema = new mongoose_1.Schema({
         default: 0,
     },
     status: {
-        type: String,
-        enum: ['모집중', '진행중', '종료'],
-        default: '모집중',
+        type: Boolean,
+        required: true,
+        default: true,
     },
     // 신청 스키마 _id List
     joinReqList: {

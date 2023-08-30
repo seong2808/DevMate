@@ -1,8 +1,6 @@
 import mongoose from 'mongoose';
 import Join, { IJoin } from '../models/Join';
 import Notification from '../models/Notification';
-import User from '../models/User';
-import { join } from 'path';
 import { IGroup } from '../types/groups-types';
 
 class JoinService {
@@ -65,7 +63,8 @@ class JoinService {
     userId: string,
   ) {
     const joinReqList = group.joinReqList;
-    Promise.allSettled(
+    const saveJoinDate: object[] = [];
+    await Promise.allSettled(
       joinReqList.map(async (joinUserId) => {
         const join = await Join.findByIdAndDelete({ _id: joinUserId });
         if (join) {

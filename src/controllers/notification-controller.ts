@@ -14,16 +14,16 @@ class NotificationController {
     this.notificationService = notificationService;
     this.userService = userService;
   }
-
+  // 유저 알림 전체 조회
   getAllnotification = async (
     req: Request,
     res: Response,
     next: NextFunction,
   ) => {
-    try {
-      const userTokenInfo = req.user as reqUserInfo;
-      const userId: string = userTokenInfo.userId;
+    const userTokenInfo = req.user as reqUserInfo;
+    const userId: string = userTokenInfo.userId;
 
+    try {
       const getAll = await this.notificationService.getNotificationByUserId(
         userId,
       );
@@ -32,18 +32,19 @@ class NotificationController {
 
       res.json({ data: getAll?.notifications, error: null });
     } catch (err) {
-      console.log(err);
       const error = new HttpError('서버 에러 발생', 500);
       return next(error);
     }
   };
 
+  // 알림 삭제
   deleteNotification = async (
     req: Request,
     res: Response,
     next: NextFunction,
   ) => {
     const notificationId = req.params.notificationId;
+
     try {
       await this.notificationService.deleteByNotificationId(notificationId);
       res.status(204).json();
@@ -53,14 +54,16 @@ class NotificationController {
     }
   };
 
+  // 알림 전체 삭제
   deleteAllNotification = async (
     req: Request,
     res: Response,
     next: NextFunction,
   ) => {
+    const userTokenInfo = req.user as reqUserInfo;
+    const userId: string = userTokenInfo.userId;
+
     try {
-      const userTokenInfo = req.user as reqUserInfo;
-      const userId: string = userTokenInfo.userId;
       const updateUserData = { notifications: [] };
 
       const result = await this.userService.updateUser(userId, updateUserData);
