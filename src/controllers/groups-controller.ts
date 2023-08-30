@@ -333,18 +333,27 @@ class GroupController {
       if (user.ongoingGroup.length === 4)
         return next(new HttpError('ONGOINGGROUP_EXIST_4', 400));
 
+      const group = await this.groupService.findOneGroup(groupId);
+      if (!group) {
+        return next(new HttpError('GROUP_NOT_FOUND', 404));
+      } else if (group.currentMembers.length === group.maxMembers) {
+        return next(new HttpError('FULL_OF_PEOPLE', 403));
+      }
+
       const updateGroupData = {
         $addToSet: { currentMembers: userId },
         $pull: { joinReqList: joinId },
       };
-      await this.groupService.updateGroup(groupId, updateGroupData);
+      const updatedGroup = await this.groupService.updateGroup(
+        groupId,
+        updateGroupData,
+      );
 
       await this.joinService.deleteOne(joinId);
 
-      const group = await this.groupService.findOneGroup(groupId);
-      if (!group) return next(new HttpError('GROUP_NOT_FOUND', 404));
-      const currentMembers = group.currentMembers.length;
-      const maxMembers = group.maxMembers;
+      if (!updatedGroup) return next(new HttpError('GROUP_NOT_FOUND', 404));
+      const currentMembers = updatedGroup.currentMembers.length;
+      const maxMembers = updatedGroup.maxMembers;
 
       if (currentMembers === maxMembers) {
         const updatedGroupData = { status: false };
