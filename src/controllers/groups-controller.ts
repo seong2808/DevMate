@@ -128,11 +128,21 @@ class GroupController {
     next: NextFunction,
   ) => {
     const { groupId } = req.params;
-    const updatedData = { ...req.body };
     try {
       const group = await this.groupService.findOneGroup(groupId);
       if (!group)
         return res.status(404).json({ data: null, error: 'GROUP_NOT_FOUND' });
+
+      const updatedData = {
+        ...req.body,
+        position: JSON.parse(req.body.position),
+        skills: JSON.parse(req.body.skills),
+        imageUrl: req.file
+          ? req.file.path
+          : 'imageFile' in req.body
+          ? ''
+          : group.imageUrl,
+      };
 
       if (
         updatedData.maxMembers &&
@@ -150,6 +160,7 @@ class GroupController {
       res.status(204).json();
     } catch (err) {
       const error = new HttpError('서버 에러 발생', 500);
+      console.log(err);
       return next(error);
     }
   };
