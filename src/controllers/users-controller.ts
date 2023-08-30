@@ -175,18 +175,28 @@ class UserController {
           ),
         );
       }
-      // Group 해당 User 데이터 삭제
-      // currentMember에 탈퇴userId가 존재하면 제거
-      await Group.updateMany(
+
+      // Group의 currentMember에 탈퇴userId가 존재하면 제거
+      const updateGroupMember = await Group.updateMany(
         { currentMembers: userId },
         { $pull: { currentMembers: userId } },
       );
 
       // Join 해당 User 데이터 삭제
-      await this.joinService.deleteManyByUserId(userId);
+      const deleteUserAtJoin = await this.joinService.deleteManyByUserId(
+        userId,
+      );
 
       // Notification 해당 User 데이터 삭제
-      await this.notificationService.deleteAll(userId);
+      const deleteNotification = await this.notificationService.deleteAll(
+        userId,
+      );
+
+      await Promise.all([
+        updateGroupMember,
+        deleteUserAtJoin,
+        deleteNotification,
+      ]);
 
       // User 스키마에서 해당 User 삭제
       await this.userService.deleteUser(userId);
