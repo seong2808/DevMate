@@ -28,12 +28,6 @@ class UserController {
     this.notificationService = notificationService;
   }
 
-  //전체 사용자 정보 조회 (추후 삭제)
-  getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
-    const users = await this.userService.getAllUsers();
-    res.json({ data: { users }, error: null });
-  };
-
   // 내 정보 조회
   getMyInfo = async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user as reqUserInfo;
@@ -46,7 +40,7 @@ class UserController {
 
     const userId: string = user.userId;
     try {
-      const foundUser = await this.userService.getMyInfo(userId);
+      const foundUser = await this.userService.getUser(userId);
 
       if (!foundUser) {
         return next(new HttpError('사용자를 찾을 수 없습니다.', 404));
@@ -131,14 +125,9 @@ class UserController {
 
   // 사용자 정보 수정
   updateUser = async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      return next(
-        new HttpError('인증되지 않은 유저입니다. 로그인 해주세요.', 401),
-      );
-    }
     const userTokenInfo = req.user as reqUserInfo;
     const userId: string = userTokenInfo.userId;
-    const foundUser = await this.userService.findUserById(userId);
+    const foundUser = await this.userService.getUser(userId);
 
     const { body } = req;
     const updates: IUser = {
@@ -176,7 +165,7 @@ class UserController {
     const userId: string = userTokenInfo.userId;
 
     try {
-      const foundUser = await this.userService.findUserById(userId);
+      const foundUser = await this.userService.getUser(userId);
       //생성 그룹 존재시 에러발생
       if (foundUser?.createdGroup) {
         return next(
@@ -204,7 +193,6 @@ class UserController {
 
       res.status(204).json({ message: '삭제 완료' });
     } catch (err) {
-      console.log(err);
       const error = new HttpError('서버 에러 발생', 500);
       return next(error);
     }

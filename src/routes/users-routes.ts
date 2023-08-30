@@ -22,8 +22,6 @@ const userController = new UserController(
 
 const router = express.Router();
 
-router.get('/', userController.getAllUsers);
-
 router.get('/myProfile', isLoggedIn, userController.getMyInfo);
 
 router.get('/profile/:userId', userController.getUser);
