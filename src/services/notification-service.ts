@@ -67,12 +67,9 @@ class NotificationService {
           );
         }
       }),
-    )
-      .then((result) => console.log('result : ', result))
-      .catch((err) => {
-        console.log(err);
-        throw new HttpError('서버 에러 발생', 500);
-      });
+    ).catch((err) => {
+      throw new HttpError('서버 에러 발생', 500);
+    });
   }
 }
 

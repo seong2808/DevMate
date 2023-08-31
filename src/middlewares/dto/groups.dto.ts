@@ -1,14 +1,4 @@
-import {
-  IsArray,
-  IsEnum,
-  IsIn,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  ValidateNested,
-  max,
-} from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { GroupType, Location, Position, Skill } from '../../types/groups-types';
 import { Transform, Type } from 'class-transformer';
 
