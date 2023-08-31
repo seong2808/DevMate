@@ -16,7 +16,7 @@ class GroupService {
     const sortCriteria: SortCriteria = {};
     sortByTime ? (sortCriteria.createdAt = -1) : (sortCriteria.viewCount = -1);
 
-    const groups = await Group.find(
+    const groupPagination = Group.find(
       position || location || skill || type
         ? {
             $and: [
@@ -35,7 +35,7 @@ class GroupService {
       .skip(perPage * (page - 1))
       .limit(perPage);
 
-    const data = await Group.find(
+    const data = Group.find(
       position || location || skill || type
         ? {
             $and: [
@@ -51,7 +51,9 @@ class GroupService {
           },
     );
 
-    const total = data.length;
+    const [groups, totalGroup] = await Promise.all([groupPagination, data]);
+
+    const total = totalGroup.length;
     const totalPage = Math.ceil(total / perPage);
 
     return { groups, totalPage };
