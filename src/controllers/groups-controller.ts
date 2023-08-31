@@ -435,7 +435,6 @@ class GroupController {
 
       res.status(204).json();
     } catch (err) {
-      console.log(err);
       const error = new HttpError('서버 에러 발생', 500);
       return next(error);
     }
@@ -745,7 +744,6 @@ class GroupController {
 
       res.status(204).json();
     } catch (err) {
-      console.log(err);
       const error = new HttpError('서버 에러 발생', 500);
       return next(error);
     }
