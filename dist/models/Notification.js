@@ -26,26 +26,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const notificationSchema = new mongoose_1.Schema({
     receiverId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'User',
+        type: String,
         required: true,
     },
     senderId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'User',
+        type: String,
         required: true,
     },
     groupId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'Group',
+        type: String,
         required: true,
-    },
-    reportId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'Report',
     },
     content: {
         type: String,
+        required: true,
     },
     type: {
         type: String,
@@ -54,7 +48,7 @@ const notificationSchema = new mongoose_1.Schema({
     },
     kind: {
         type: String,
-        enum: ['approval', 'reject', 'join'],
+        enum: ['approval', 'reject', 'join', 'exit', 'delete'],
         required: true,
     },
     status: {
@@ -63,5 +57,10 @@ const notificationSchema = new mongoose_1.Schema({
         default: true,
         required: true,
     },
+}, {
+    timestamps: {
+        createdAt: true,
+    },
 });
-exports.default = mongoose_1.default.model('Notification', notificationSchema);
+const Notification = mongoose_1.default.model('Notification', notificationSchema);
+exports.default = Notification;

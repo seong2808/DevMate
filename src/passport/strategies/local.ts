@@ -15,13 +15,11 @@ const local = new LocalStrategy(
       const user = await User.findOne({ email });
 
       if (!user) {
-        // return done(null, false, { message: '회원을 찾을 수 없습니다.' });
         return done(new HttpError('회원을 찾을 수 없습니다.', 404));
       }
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
       if (!isPasswordValid) {
-        // return done(null, false, { message: '비밀번호를 확인해주세요.' });
         return done(new HttpError('비밀번호를 확인해주세요.', 401));
       }
 

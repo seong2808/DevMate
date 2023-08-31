@@ -3,8 +3,6 @@ import { CreateGroupDto } from './dto/groups.dto';
 import { validate } from 'class-validator';
 import { plainToClass } from 'class-transformer';
 
-const TEMP_USER_ID = '64dc65801ded8e6a83b9d760';
-
 export const handleDtoValidate = async (
   req: Request,
   res: Response,
