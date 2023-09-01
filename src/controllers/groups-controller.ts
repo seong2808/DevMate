@@ -6,6 +6,7 @@ import UserService from '../services/users-service';
 import mongoose from 'mongoose';
 import JoinService from '../services/join-service';
 import NotificationService from '../services/notification-service';
+import moment from 'moment-timezone';
 
 class GroupController {
   private groupService: GroupService;
@@ -106,13 +107,16 @@ class GroupController {
       if (userCreatedGroup || mongoose.isValidObjectId(userCreatedGroup))
         return res.status(400).json({ data: null, error: 'GROUP_EXISTS' });
 
+      const postDate = moment.tz('Asia/Seoul').format('YYYY-MM-DDTHH:mm a');
+
       const groupData: object = {
         ...createGruopDto,
         position: JSON.parse(req.body.position),
         skills: JSON.parse(req.body.skills),
         author: userId,
-        currentMembers: [userId],
+        currentMembers: [],
         imageUrl: req.file ? req.file.path : '',
+        date: postDate,
       };
 
       await this.groupService.createGroup(userId, groupData);
@@ -224,10 +228,13 @@ class GroupController {
       if (user.ongoingGroup.length > 4)
         return next(new HttpError('ONGOINGGROUP_EXIST_4', 400));
 
+      const postDate = moment.tz('Asia/Seoul').format('YYYY-MM-DDTHH:mm a');
+
       const newJoin = await this.joinService.createJoin(
         userId,
         groupId,
         content,
+        postDate,
       );
       const currentGroup = await this.groupService.findOneGroup(groupId);
       if (!currentGroup) return next(new HttpError('GROUP_NOT_FOUND', 404));
@@ -245,6 +252,7 @@ class GroupController {
         content: `${currentGroup.title} 그룹 가입 신청이 들어왔습니다.`,
         type: currentGroup.type,
         kind: 'join',
+        date: postDate,
       };
 
       const newNotification = await this.notificationService.createNotification(
@@ -322,6 +330,7 @@ class GroupController {
     const { joinId } = req.params;
     const userTokenInfo = req.user as reqUserInfo;
     const groupAuthorId: string = userTokenInfo.userId;
+    const postDate = moment.tz('Asia/Seoul').format('YYYY-MM-DDTHH:mm a');
 
     try {
       const reqJoin = await this.joinService.findOneJoin({ _id: joinId });
@@ -368,6 +377,7 @@ class GroupController {
         content: `${group.title} 그룹 가입 신청이 승인되었습니다.`,
         type: group.type,
         kind: 'approval',
+        date: postDate,
       };
 
       const newNotification = await this.notificationService.createNotification(
@@ -397,6 +407,7 @@ class GroupController {
     const { joinId } = req.params;
     const userTokenInfo = req.user as reqUserInfo;
     const groupAuthorId: string = userTokenInfo.userId;
+    const postDate = moment.tz('Asia/Seoul').format('YYYY-MM-DDTHH:mm a');
 
     try {
       const reqJoin = await this.joinService.findOneJoin({ _id: joinId });
@@ -421,6 +432,7 @@ class GroupController {
         content: `${group.title} 그룹 가입 신청이 거절되었습니다.`,
         type: group.type,
         kind: 'reject',
+        date: postDate,
       };
 
       const newNotification = await this.notificationService.createNotification(
@@ -693,6 +705,7 @@ class GroupController {
     const { groupId } = req.params;
     const userTokenInfo = req.user as reqUserInfo;
     const userId: string = userTokenInfo.userId;
+    const postDate = moment.tz('Asia/Seoul').format('YYYY-MM-DDTHH:mm a');
 
     try {
       const groupInfo = await this.groupService.findOneGroup(groupId);
@@ -722,6 +735,7 @@ class GroupController {
         content: `${userInfo.nickname}이 ${groupInfo.title} 그룹에서 탈퇴하셨습니다.`,
         type: groupInfo.type,
         kind: 'exit',
+        date: postDate,
       };
 
       const newNotification = await this.notificationService.createNotification(

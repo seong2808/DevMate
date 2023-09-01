@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Group from '../models/Group';
 import User from '../models/User';
 import { SortCriteria } from '../types/groups-types';
+import moment from 'moment-timezone';
 
 class GroupService {
   async findAllGroup(
@@ -60,7 +61,9 @@ class GroupService {
   }
 
   async findHotGroup() {
-    const hotGroup = await Group.find().sort({ viewCount: -1 }).limit(4);
+    const hotGroup = await Group.find({ status: true })
+      .sort({ viewCount: -1 })
+      .limit(4);
     return hotGroup;
   }
 
