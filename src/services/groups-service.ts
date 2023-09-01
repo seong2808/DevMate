@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Group from '../models/Group';
 import User from '../models/User';
 import { SortCriteria } from '../types/groups-types';
+import moment from 'moment-timezone';
 
 class GroupService {
   async findAllGroup(
@@ -16,7 +17,7 @@ class GroupService {
     const sortCriteria: SortCriteria = {};
     sortByTime ? (sortCriteria.createdAt = -1) : (sortCriteria.viewCount = -1);
 
-    const groups = await Group.find(
+    const groupPagination = Group.find(
       position || location || skill || type
         ? {
             $and: [
@@ -35,7 +36,7 @@ class GroupService {
       .skip(perPage * (page - 1))
       .limit(perPage);
 
-    const data = await Group.find(
+    const data = Group.find(
       position || location || skill || type
         ? {
             $and: [
@@ -51,14 +52,18 @@ class GroupService {
           },
     );
 
-    const total = data.length;
+    const [groups, totalGroup] = await Promise.all([groupPagination, data]);
+
+    const total = totalGroup.length;
     const totalPage = Math.ceil(total / perPage);
 
     return { groups, totalPage };
   }
 
   async findHotGroup() {
-    const hotGroup = await Group.find().sort({ viewCount: -1 }).limit(4);
+    const hotGroup = await Group.find({ status: true })
+      .sort({ viewCount: -1 })
+      .limit(4);
     return hotGroup;
   }
 

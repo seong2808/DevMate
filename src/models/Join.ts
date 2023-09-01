@@ -4,6 +4,7 @@ export interface IJoin extends Document {
   userId: typeof Schema.Types.ObjectId;
   groupId: typeof Schema.Types.ObjectId;
   content: string;
+  date: string;
 }
 
 const joinSchema = new Schema<IJoin>(
@@ -21,6 +22,11 @@ const joinSchema = new Schema<IJoin>(
     content: {
       type: String,
       required: true,
+    },
+
+    date: {
+      type: String,
+      required: false,
     },
   },
   {

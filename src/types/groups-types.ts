@@ -17,6 +17,7 @@ export interface IGroup {
   wishCount?: number;
   status: boolean;
   joinReqList: (typeof Schema.Types.ObjectId)[];
+  date: string;
 }
 
 export interface SortCriteria {
