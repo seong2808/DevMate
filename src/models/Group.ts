@@ -193,6 +193,11 @@ const groupSchema = new Schema<IGroup>(
     joinReqList: {
       type: [{ type: Schema.Types.ObjectId, ref: 'Join' }],
     },
+
+    date: {
+      type: String,
+      required: false,
+    },
   },
   {
     timestamps: {

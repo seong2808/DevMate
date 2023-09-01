@@ -11,6 +11,7 @@ export interface INotification extends Document {
   type: NotificationTypes;
   kind: NotificationKind;
   status?: boolean;
+  date: string;
 }
 
 export type NotificationKind =
@@ -54,6 +55,10 @@ const notificationSchema = new Schema<INotification>(
       // true = 알림 미확인, false = 확인 후 삭제
       default: true,
       required: true,
+    },
+    date: {
+      type: String,
+      required: false,
     },
   },
   {

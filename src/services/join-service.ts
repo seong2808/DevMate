@@ -14,8 +14,13 @@ class JoinService {
     return join;
   }
 
-  async createJoin(userId: string, groupId: string, content: string) {
-    const newJoin = new Join({ userId, groupId, content });
+  async createJoin(
+    userId: string,
+    groupId: string,
+    content: string,
+    date: string,
+  ) {
+    const newJoin = new Join({ userId, groupId, content, date });
     const join = await newJoin.save();
     return join;
   }

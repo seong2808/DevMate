@@ -4,6 +4,7 @@ import User from '../models/User';
 import Join from '../models/Join';
 import Group from '../models/Group';
 import { HttpError } from '../middlewares/error.handler';
+import moment from 'moment-timezone';
 
 class NotificationService {
   async createNotification(notificationData: object) {
@@ -38,6 +39,7 @@ class NotificationService {
     groupId: string,
     userId: string,
   ) {
+    const postDate = moment.tz('Asia/Seoul').format('YYYY-MM-DDTHH:mm a');
     Promise.allSettled(
       joinReqList.map(async (joinId) => {
         const join = await Join.findByIdAndDelete({ _id: joinId });
@@ -52,6 +54,7 @@ class NotificationService {
             content: `${group.title} 그룹 가입 신청이 거절되었습니다.`,
             type: group.type,
             kind: 'reject',
+            date: postDate,
           };
 
           const notification = new Notification(notificationData);
